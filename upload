@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# check if 2 arguments were passed
+if [ $# -ne 2 ]; then
+    echo "Usage: $0 <env> <port>"
+    exit 1
+fi
+
+pio run -e "$1" -t upload --upload-port "$2"
