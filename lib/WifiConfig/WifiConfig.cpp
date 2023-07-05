@@ -1,4 +1,8 @@
-#include <ESP8266WiFi.h>
+#ifdef ESP8266
+  #include <ESP8266WiFi.h>
+#else
+  #include <WiFi.h>
+#endif
 #include <ArduinoOTA.h>
 #include "WifiConfig.hpp"
 
