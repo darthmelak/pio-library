@@ -22,12 +22,7 @@ WifiConfig::WifiConfig(
 {}
 
 void WifiConfig::setup() {
-  if (debug) {
-    Serial.begin(115200);
-    delay(10);
-    Serial.println("\n\nInit ...");
-  }
-
+  if (debug) Serial.println("\n\nInit ...");
   setupSensorId();
 
   WiFi.mode(WIFI_STA);
@@ -51,10 +46,10 @@ void WifiConfig::setDebug(bool debug) {
 
 void WifiConfig::connectWifi() {
   if (debug) Serial.printf("Connecting to WiFi: %s ", ssid.c_str());
-  
+
   long connectStart = millis();
   WiFi.begin(ssid, password);
-  
+
   while (WiFi.status() != WL_CONNECTED && millis() - connectStart < WIFI_TIMEOUT) {
     delay(100);
     if (debug) Serial.print(".");

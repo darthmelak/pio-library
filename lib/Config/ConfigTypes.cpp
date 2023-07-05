@@ -65,7 +65,7 @@ void SavedStringConfig::setup() {
 void SavedStringConfig::setValue(String value) {
   this->value = value;
   for (int i = 0; i < length; i++) {
-    if (i < value.length()) {
+    if ((unsigned)i < value.length()) {
       EEPROM.write(offset + i, value[i]);
     } else {
       EEPROM.write(offset + i, 0);

@@ -42,7 +42,7 @@ class SavedStringConfig: public StringConfig {
 
 class SavedIntConfig: public SavedStringConfig {
   public:
-    SavedIntConfig(String name, int defaultValue, int offset = 0, int length = 4);
+    SavedIntConfig(String name, int defaultValue, int offset = 0, int length = 6);
     void setValue(int value);
     int getValue() const;
   protected:
