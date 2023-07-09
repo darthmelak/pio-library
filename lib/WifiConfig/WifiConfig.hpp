@@ -10,6 +10,11 @@
 #define WIFI_RECONNECT_INTERVAL 10000
 #endif
 
+struct ConnectionStatus {
+  unsigned long from = 0;
+  bool connecting = false;
+};
+
 class WifiConfig {
   public:
     WifiConfig(String ssid, String password, String name_default, String hostname_default, bool reconnect = true, bool useOTA = true);
@@ -23,7 +28,7 @@ class WifiConfig {
     void setupWebServer();
   protected:
     bool debug = false;
-    unsigned long lastConnectAttempt = 0;
+    ConnectionStatus wifiStatus;
     String ssid;
     String password;
     String name;

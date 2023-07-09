@@ -24,16 +24,18 @@ WifiConfig::WifiConfig(
 void WifiConfig::setup() {
   if (debug) Serial.println("\n\nInit ...");
   setupSensorId();
-
   WiFi.mode(WIFI_STA);
-  connectWifi();
+  if (useOTA) {
+    ArduinoOTA.begin();
+    if (debug) Serial.println("OTA started");
+  }
 }
 
 void WifiConfig::loop() {
-  if (useOTA) ArduinoOTA.handle();
-  if (!isWifiConnected() && reconnect && millis() - lastConnectAttempt > WIFI_RECONNECT_INTERVAL) {
+  if (!isWifiConnected() && reconnect && millis() - wifiStatus.from > WIFI_RECONNECT_INTERVAL) {
     connectWifi();
   }
+  if (useOTA) ArduinoOTA.handle();
 }
 
 bool WifiConfig::isWifiConnected() {
@@ -45,26 +47,27 @@ void WifiConfig::setDebug(bool debug) {
 }
 
 void WifiConfig::connectWifi() {
-  if (debug) Serial.printf("Connecting to WiFi: %s ", ssid.c_str());
+  if (WiFi.status() != WL_CONNECTED) return;
 
-  long connectStart = millis();
-  WiFi.begin(ssid, password);
+  if (!wifiStatus.connecting) {
+    if (debug) Serial.printf("Connecting to WiFi: %s ", ssid.c_str());
 
-  while (WiFi.status() != WL_CONNECTED && millis() - connectStart < WIFI_TIMEOUT) {
-    delay(100);
-    if (debug) Serial.print(".");
-  }
-
-  lastConnectAttempt = millis();
-  if (WiFi.status() == WL_CONNECTED) {
-    if (debug) Serial.printf("\nConnected, IP address: %s\n", WiFi.localIP().toString().c_str());
-
-    if (useOTA) {
-      ArduinoOTA.begin();
-      if (debug) Serial.println("OTA started");
-    }
+    wifiStatus.from = millis();
+    wifiStatus.connecting = true;
+    WiFi.begin(ssid, password);
   } else {
-    if (debug) Serial.println("\nConnection failed.");
+    unsigned long elapsed = millis() - wifiStatus.from;
+    if (WiFi.status() != WL_CONNECTED && elapsed < WIFI_TIMEOUT) {
+      if (debug && elapsed % 100 < 4) Serial.print(".");
+    } else {
+      wifiStatus.connecting = false;
+      wifiStatus.from = millis();
+      if (WiFi.status() == WL_CONNECTED) {
+        if (debug) Serial.printf("\nConnected, IP address: %s\n", WiFi.localIP().toString().c_str());
+      } else {
+        if (debug) Serial.println("\nConnection failed.");
+      }
+    }
   }
 }
 

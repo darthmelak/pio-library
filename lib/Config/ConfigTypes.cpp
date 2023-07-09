@@ -4,10 +4,6 @@
 /* --== StringConfig ==-- */
 StringConfig::StringConfig(String name, String defaultValue): name(name), value(defaultValue) {}
 
-StringConfig::~StringConfig() {}
-
-void StringConfig::setup() {}
-
 String StringConfig::getName() const {
   return name;
 }
@@ -45,12 +41,13 @@ SavedStringConfig::SavedStringConfig(
   String defaultValue,
   int offset,
   int length
-): StringConfig(name, defaultValue),
+): name(name),
+  value(defaultValue),
   offset(offset),
-  length(length)
-{}
+  length(length) {}
 
 void SavedStringConfig::setup() {
+  #ifdef ESP8266
   char buffer[64];
   char charbuff;
 
@@ -60,10 +57,26 @@ void SavedStringConfig::setup() {
   }
   String res = buffer;
   value = (res.length() > 0) ? res : value;
+  #else
+  value = prefs->getString(getName().c_str(), value);
+  #endif
+}
+
+String SavedStringConfig::getName() const {
+  return name;
+}
+
+void SavedStringConfig::setNext(SavedStringConfig *next) {
+  this->next = next;
+}
+
+SavedStringConfig *SavedStringConfig::getNext() const {
+  return next;
 }
 
 void SavedStringConfig::setValue(String value) {
   this->value = value;
+  #ifdef ESP8266
   for (int i = 0; i < length; i++) {
     if ((unsigned)i < value.length()) {
       EEPROM.write(offset + i, value[i]);
@@ -72,11 +85,24 @@ void SavedStringConfig::setValue(String value) {
     }
   }
   EEPROM.commit();
+  #else
+  prefs->putString(getName().c_str(), value);
+  #endif
+}
+
+String SavedStringConfig::getValue() const {
+  return value;
 }
 
 int SavedStringConfig::getLength() const {
   return length;
 }
+
+#ifdef ESP32
+void SavedStringConfig::setPreferences(Preferences *prefs) {
+  SavedStringConfig::prefs = prefs;
+}
+#endif
 
 /* --== SavedIntConfig ==-- */
 SavedIntConfig::SavedIntConfig(
@@ -84,13 +110,32 @@ SavedIntConfig::SavedIntConfig(
   int defaultValue,
   int offset,
   int length
-): SavedStringConfig(name, String(defaultValue), offset, length),
-  value(defaultValue)
-{}
+): SavedStringConfig(name, String(defaultValue), offset, length), value(defaultValue) {}
+
+void SavedIntConfig::setup() {
+  #ifdef ESP8266
+  char buffer[64];
+  char charbuff;
+
+  for (int i = 0; i < length; i++) {
+    charbuff = char(EEPROM.read(offset + i));
+    buffer[i] = isPrintable(charbuff) ? charbuff : 0;
+  }
+  String res = buffer;
+  value = (res.length() > 0) ? res.toInt() : value;
+  #else
+  value = prefs->getInt(getName().c_str(), value);
+  #endif
+}
 
 void SavedIntConfig::setValue(int value) {
+  #ifdef ESP8266
   SavedStringConfig::setValue(String(value));
+  #endif
   this->value = value;
+  #ifdef ESP32
+  prefs->putInt(getName().c_str(), value);
+  #endif
 }
 
 int SavedIntConfig::getValue() const {
