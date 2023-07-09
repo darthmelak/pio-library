@@ -11,13 +11,11 @@ WifiConfig::WifiConfig(
   String password,
   String name_default,
   String hostname_default,
-  bool reconnect,
   bool useOTA
 ): ssid(ssid),
   password(password),
   name(name_default),
   hostname(hostname_default),
-  reconnect(reconnect),
   useOTA(useOTA)
 {}
 
@@ -25,17 +23,11 @@ void WifiConfig::setup() {
   if (debug) Serial.println("\n\nInit ...");
   setupSensorId();
   WiFi.mode(WIFI_STA);
-  if (useOTA) {
-    ArduinoOTA.begin();
-    if (debug) Serial.println("OTA started");
-  }
 }
 
 void WifiConfig::loop() {
-  if (!isWifiConnected() && reconnect && millis() - wifiStatus.from > WIFI_RECONNECT_INTERVAL) {
-    connectWifi();
-  }
-  if (useOTA) ArduinoOTA.handle();
+  checkWifiConnection();
+  if (isWifiConnected() && useOTA) ArduinoOTA.handle();
 }
 
 bool WifiConfig::isWifiConnected() {
@@ -46,10 +38,15 @@ void WifiConfig::setDebug(bool debug) {
   this->debug = debug;
 }
 
-void WifiConfig::connectWifi() {
-  if (WiFi.status() != WL_CONNECTED) return;
+void WifiConfig::checkWifiConnection() {
+  if (WiFi.status() == WL_CONNECTED && !wifiStatus.connecting) return;
 
   if (!wifiStatus.connecting) {
+    if (
+      wifiStatus.from > 0 &&
+      millis() - wifiStatus.from < WIFI_RECONNECT_INTERVAL
+    ) return;
+
     if (debug) Serial.printf("Connecting to WiFi: %s ", ssid.c_str());
 
     wifiStatus.from = millis();
@@ -64,6 +61,10 @@ void WifiConfig::connectWifi() {
       wifiStatus.from = millis();
       if (WiFi.status() == WL_CONNECTED) {
         if (debug) Serial.printf("\nConnected, IP address: %s\n", WiFi.localIP().toString().c_str());
+        if (useOTA) {
+          ArduinoOTA.begin();
+          if (debug) Serial.println("OTA started");
+        }
       } else {
         if (debug) Serial.println("\nConnection failed.");
       }

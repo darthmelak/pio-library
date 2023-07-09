@@ -34,13 +34,12 @@ void setup() {
 
     pinMode(pin, OUTPUT);
     pinMode(pin2, OUTPUT);
-    digitalWrite(pin, HIGH);
     digitalWrite(pin2, LOW);
-    timer.every(500, [](void*) -> bool {
+    timer.every(1000, [](void*) -> bool {
         digitalWrite(pin2, !digitalRead(pin2));
         IntConfig *counter = (IntConfig *) config.get("counter");
         counter->setValue(counter->getValue() + 1);
-        if (debug) Serial.println(config.get("counter")->getValue());
+        if (debug) Serial.println(counter->getValue());
         return true;
     });
 
@@ -51,6 +50,7 @@ void setup() {
 
 void loop() {
     wifiConfig.loop();
+    digitalWrite(pin, wifiConfig.isWifiConnected() ? LOW : HIGH);
     timer.tick();
     delay(1);
 }

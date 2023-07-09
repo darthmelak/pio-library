@@ -17,13 +17,13 @@ struct ConnectionStatus {
 
 class WifiConfig {
   public:
-    WifiConfig(String ssid, String password, String name_default, String hostname_default, bool reconnect = true, bool useOTA = true);
+    WifiConfig(String ssid, String password, String name_default, String hostname_default, bool useOTA = true);
     void setDebug(bool value);
     void setup();
     void loop();
     bool isWifiConnected();
   private:
-    void connectWifi();
+    void checkWifiConnection();
     void setupSensorId();
     void setupWebServer();
   protected:
@@ -34,7 +34,6 @@ class WifiConfig {
     String name;
     String hostname;
     String sensorId;
-    bool reconnect;
     bool useOTA;
 };
 
