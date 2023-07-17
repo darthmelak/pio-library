@@ -16,6 +16,7 @@ class Configuration {
     Configuration& add(String name, String defaultValue);
     Configuration& add(String name, int defaultValue);
     StringConfig *get(String name);
+    IntConfig *getInt(String name);
   protected:
     bool debug;
     StringConfig *first;
@@ -31,6 +32,7 @@ class SavedConfiguration: public Configuration {
     SavedConfiguration& add(String name, String defaultValue);
     SavedConfiguration& add(String name, int defaultValue);
     SavedStringConfig *get(String name);
+    SavedIntConfig *getInt(String name);
   protected:
     int size;
     SavedStringConfig *first;

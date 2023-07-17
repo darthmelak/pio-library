@@ -2,6 +2,7 @@
 #define WifiConfig_h
 
 #include <Arduino.h>
+#include <ArduinoJson.h>
 
 #ifndef WIFI_TIMEOUT
 #define WIFI_TIMEOUT 5000
@@ -17,16 +18,16 @@ struct ConnectionStatus {
 
 class WifiConfig {
   public:
-    WifiConfig(String ssid, String password, String name_default, String hostname_default, bool useOTA = true);
+    WifiConfig(String ssid, String password, String name_default, String hostname_default, bool useOTA = true, bool runWebServer = true);
     void setDebug(bool value);
     void setup();
     void loop();
     bool isWifiConnected();
-  private:
+  protected:
     void checkWifiConnection();
     void setupSensorId();
     void setupWebServer();
-  protected:
+    void respondJson(const JsonDocument& json, int code = 200);
     bool debug = false;
     ConnectionStatus wifiStatus;
     String ssid;
@@ -35,6 +36,7 @@ class WifiConfig {
     String hostname;
     String sensorId;
     bool useOTA;
+    bool runWebServer;
 };
 
 #endif

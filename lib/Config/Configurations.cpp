@@ -27,6 +27,17 @@ StringConfig *Configuration::get(String name) {
   return NULL;
 }
 
+IntConfig *Configuration::getInt(String name) {
+  StringConfig *current = first;
+  while (current != NULL) {
+    if (current->getName() == name) {
+      return (IntConfig *) current;
+    }
+    current = current->getNext();
+  }
+  return NULL;
+}
+
 void Configuration::chain(StringConfig *config) {
   if (first == NULL) {
     first = config;
@@ -78,6 +89,17 @@ SavedStringConfig *SavedConfiguration::get(String name) {
   while (current != NULL) {
     if (current->getName() == name) {
       return current;
+    }
+    current = current->getNext();
+  }
+  return NULL;
+}
+
+SavedIntConfig *SavedConfiguration::getInt(String name) {
+  SavedStringConfig *current = first;
+  while (current != NULL) {
+    if (current->getName() == name) {
+      return (SavedIntConfig *) current;
     }
     current = current->getNext();
   }
