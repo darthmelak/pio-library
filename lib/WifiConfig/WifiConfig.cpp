@@ -8,12 +8,16 @@
 #include <ArduinoOTA.h>
 #include "WifiConfig.hpp"
 
+#define C_SSID "ssid"
+#define C_PASS "password"
+#define C_NAME "name"
+#define C_HNAM "hostname"
+
 #ifdef ESP8266
 ESP8266WebServer server;
 #else
 WebServer server;
 #endif
-
 
 WifiConfig::WifiConfig(
   String ssid,
@@ -21,17 +25,23 @@ WifiConfig::WifiConfig(
   String name_default,
   String hostname_default,
   bool useOTA,
-  bool runWebServer
-): ssid(ssid),
-  password(password),
-  name(name_default),
-  hostname(hostname_default),
+  bool runWebServer,
+  bool debug
+): config("/config", debug),
   useOTA(useOTA),
-  runWebServer(runWebServer)
-{}
+  runWebServer(runWebServer),
+  debug(debug)
+{
+  config
+    .add(C_SSID, ssid)
+    .add(C_PASS, password)
+    .add(C_NAME, name_default)
+    .add(C_HNAM, hostname_default);
+}
 
 void WifiConfig::setup() {
-  if (debug) Serial.println("\n\nInit ...");
+  if (debug) Serial.println("\n\nWifiConfig init ...");
+  // config.setup();
   setupSensorId();
   if (runWebServer) setupWebServer();
   WiFi.mode(WIFI_STA);
@@ -47,10 +57,6 @@ bool WifiConfig::isWifiConnected() {
   return WiFi.status() == WL_CONNECTED;
 }
 
-void WifiConfig::setDebug(bool debug) {
-  this->debug = debug;
-}
-
 void WifiConfig::checkWifiConnection() {
   if (WiFi.status() == WL_CONNECTED && !wifiStatus.connecting) return;
 
@@ -60,6 +66,8 @@ void WifiConfig::checkWifiConnection() {
       millis() - wifiStatus.from < WIFI_RECONNECT_INTERVAL
     ) return;
 
+    String ssid = config.get(C_SSID)->getValue();
+    String password = config.get(C_PASS)->getValue();
     if (debug) Serial.printf("Connecting to WiFi: %s ", ssid.c_str());
 
     wifiStatus.from = millis();
@@ -96,22 +104,22 @@ void WifiConfig::setupSensorId() {
   char tmp[64]; // setupid from hostname-mac
   uint8_t mac[6];
   WiFi.macAddress(mac);
-  sprintf(tmp, "%s-%02x%02x%02x%02x%02x%02x", hostname.c_str(), mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+  const char* hostname = config.get(C_HNAM)->getValue().c_str();
+  sprintf(tmp, "%s-%02x%02x%02x%02x%02x%02x", hostname, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
   sensorId = tmp;
-  if (debug) Serial.println("sensorId set to:" + sensorId);
+  if (debug) Serial.printf("sensorId set to: %d\n", sensorId);
   if (useOTA) {
-    ArduinoOTA.setHostname(hostname.c_str());
-    if (debug) Serial.println("mDNS set to: " + hostname);
+    ArduinoOTA.setHostname(hostname);
+    if (debug) Serial.printf("mDNS set to: %s\n", hostname);
   }
 }
 
 void WifiConfig::setupWebServer()
 {
-  server.on("/", HTTP_GET, [this]() {
-    Serial.println("Request: GET /");
+  server.on(config.getPath(), HTTP_GET, [this]() {
+    if (debug) Serial.printf("GET %s\n", config.getPath().c_str());
     StaticJsonDocument<256> json;
-    json["name"] = name;
-    json["hostname"] = hostname;
+    config.toJson(json);
     respondJson(json);
   });
 }

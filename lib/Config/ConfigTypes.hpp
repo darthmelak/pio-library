@@ -9,11 +9,12 @@
 class StringConfig {
   public:
     StringConfig(String name, String defaultValue);
+    virtual ~StringConfig() {};
     String getName() const;
     void setNext(StringConfig *next);
     StringConfig *getNext() const;
-    void setValue(String value);
-    String getValue() const;
+    virtual void setValue(String value);
+    virtual String getValue() const;
   private:
     String name;
     StringConfig *next;
@@ -25,7 +26,8 @@ class IntConfig: public StringConfig {
   public:
     IntConfig(String name, int defaultValue);
     void setValue(int value);
-    int getValue() const;
+    String getValue() const;
+    int getIntVal() const;
   protected:
     int value;
 };
@@ -33,12 +35,13 @@ class IntConfig: public StringConfig {
 class SavedStringConfig {
   public:
     SavedStringConfig(String name, String defaultValue, int offset = 0, int length = 64);
+    virtual ~SavedStringConfig() {};
     virtual void setup();
     String getName() const;
     void setNext(SavedStringConfig *next);
     SavedStringConfig *getNext() const;
-    void setValue(String value);
-    String getValue() const;
+    virtual void setValue(String value);
+    virtual String getValue() const;
     int getLength() const;
     #ifdef ESP32
     static void setPreferences(Preferences *prefs);
@@ -60,7 +63,8 @@ class SavedIntConfig: public SavedStringConfig {
     SavedIntConfig(String name, int defaultValue, int offset = 0, int length = 6);
     void setup();
     void setValue(int value);
-    int getValue() const;
+    String getValue() const;
+    int getIntVal() const;
   protected:
     int value;
 };

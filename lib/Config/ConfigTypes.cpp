@@ -2,7 +2,7 @@
 #include "ConfigTypes.hpp"
 
 /* --== StringConfig ==-- */
-StringConfig::StringConfig(String name, String defaultValue): name(name), value(defaultValue) {}
+StringConfig::StringConfig(String name, String defaultValue): name(name), next(NULL), value(defaultValue) {}
 
 String StringConfig::getName() const {
   return name;
@@ -31,7 +31,11 @@ void IntConfig::setValue(int value) {
   this->value = value;
 }
 
-int IntConfig::getValue() const {
+String IntConfig::getValue() const {
+  return String(value);
+}
+
+int IntConfig::getIntVal() const {
   return value;
 }
 
@@ -138,6 +142,10 @@ void SavedIntConfig::setValue(int value) {
   #endif
 }
 
-int SavedIntConfig::getValue() const {
+String SavedIntConfig::getValue() const {
+  return String(value);
+}
+
+int SavedIntConfig::getIntVal() const {
   return value;
 }

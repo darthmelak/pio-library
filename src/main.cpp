@@ -6,9 +6,10 @@
 #include "secrets.h"
 
 bool debug = true;
+bool echoCount = false;
 
-Configuration config(debug);
-WifiConfig wifiConfig(WIFI_SSID, WIFI_PASSWORD, "Testbed", "testbed");
+Configuration config("", debug);
+WifiConfig wifiConfig(WIFI_SSID, WIFI_PASSWORD, "Testbed", "testbed", true, true, debug);
 #ifdef ESP8266
 int pin = D7;
 int pin2 = D6;
@@ -17,6 +18,8 @@ int pin = 7;
 int pin2 = 6;
 #endif
 Timer<2> timer;
+
+void handleSerial();
 
 void setup() {
   if (debug) {
@@ -32,25 +35,60 @@ void setup() {
     .add("counter", 0)
   ;
 
-    pinMode(pin, OUTPUT);
-    pinMode(pin2, OUTPUT);
-    digitalWrite(pin2, LOW);
-    timer.every(1000, [](void*) -> bool {
-        digitalWrite(pin2, !digitalRead(pin2));
-        IntConfig *counter = (IntConfig *) config.get("counter");
-        counter->setValue(counter->getValue() + 1);
-        if (debug) Serial.println(counter->getValue());
-        return true;
-    });
+  pinMode(pin, OUTPUT);
+  pinMode(pin2, OUTPUT);
+  digitalWrite(pin2, LOW);
+  timer.every(1000, [](void*) -> bool {
+    digitalWrite(pin2, !digitalRead(pin2));
+    IntConfig *counter = config.getInt("counter");
+    counter->setValue(counter->getIntVal() + 1);
+    if (debug && echoCount) Serial.println(counter->getValue());
+    return true;
+  });
 
-    wifiConfig.setDebug(true);
-    wifiConfig.setup();
-    digitalWrite(pin, LOW);
+  wifiConfig.setup();
+  digitalWrite(pin, LOW);
 }
 
 void loop() {
-    wifiConfig.loop();
-    digitalWrite(pin, wifiConfig.isWifiConnected() ? LOW : HIGH);
-    timer.tick();
-    delay(1);
+  handleSerial();
+  wifiConfig.loop();
+  digitalWrite(pin, wifiConfig.isWifiConnected() ? LOW : HIGH);
+  timer.tick();
+  delay(1);
+}
+
+void handleSerial() {
+  static String buffer = "";
+  if (!debug || !Serial.available()) return;
+
+  char c = Serial.read();
+  if (c != '\n' && c != '\r') {
+    buffer += c;
+  } else {
+    if (buffer == "reset") {
+      Serial.println("Resetting counter");
+      config.getInt("counter")->setValue(0);
+    }
+    if (buffer == "echo") {
+      echoCount = !echoCount;
+      Serial.println("Echo counter: " + String(echoCount));
+    }
+    if (buffer == "test") {
+      StringConfig *item = config.getFirst();
+      while (item != NULL) {
+        Serial.println(item->getName() + ": " + item->getValue());
+        item = item->getNext();
+      }
+    }
+    if (buffer == "json") {
+      DynamicJsonDocument json(256);
+      config.toJson(json);
+      String response;
+      serializeJson(json, response);
+      Serial.println(response);
+    }
+
+    buffer = "";
+  }
 }

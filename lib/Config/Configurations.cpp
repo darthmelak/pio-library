@@ -1,6 +1,10 @@
 #include "Configurations.hpp"
 
-Configuration::Configuration(bool debug): debug(debug), first(NULL), last(NULL) {}
+Configuration::Configuration(String path, bool debug): path(path), debug(debug), first(NULL), last(NULL) {}
+
+String Configuration::getPath() {
+  return path;
+}
 
 Configuration& Configuration::add(String name, String defaultValue) {
   StringConfig *config = new StringConfig(name, defaultValue);
@@ -16,7 +20,7 @@ Configuration& Configuration::add(String name, int defaultValue) {
   return *this;
 }
 
-StringConfig *Configuration::get(String name) {
+StringConfig *Configuration::get(String name) const {
   StringConfig *current = first;
   while (current != NULL) {
     if (current->getName() == name) {
@@ -27,7 +31,7 @@ StringConfig *Configuration::get(String name) {
   return NULL;
 }
 
-IntConfig *Configuration::getInt(String name) {
+IntConfig *Configuration::getInt(String name) const {
   StringConfig *current = first;
   while (current != NULL) {
     if (current->getName() == name) {
@@ -48,18 +52,31 @@ void Configuration::chain(StringConfig *config) {
   }
 }
 
-SavedConfiguration::SavedConfiguration(bool debug): Configuration(debug), size(0) {}
+StringConfig *Configuration::getFirst() const {
+  return first;
+}
+
+void Configuration::toJson(JsonDocument& json) const {
+  JsonObject obj = json.to<JsonObject>();
+  StringConfig *item = first;
+  while (item != NULL) {
+    obj[item->getName()] = item->getValue();
+    item = item->getNext();
+  }
+}
+
+SavedConfiguration::SavedConfiguration(String path, bool debug): Configuration(path, debug), size(0) {}
 
 void SavedConfiguration::setup() {
   #ifdef ESP8266
-    EEPROM.begin(size);
+    EEPROM.begin(size+32);
   #else
     preferences.begin(PREFS_NAMESPACE);
   #endif
   SavedStringConfig *current = first;
   while (current != NULL) {
     current->setup();
-    if (debug) Serial.println(current->getName() + ": " + current->getValue());
+    if (debug) Serial.printf("%s: %s\n", current->getName().c_str(), current->getValue().c_str());
     current = current->getNext();
   }
 }
@@ -114,4 +131,8 @@ void SavedConfiguration::chain(SavedStringConfig *config) {
     last->setNext(config);
     last = config;
   }
+}
+
+SavedStringConfig *SavedConfiguration::getFirst() {
+  return first;
 }

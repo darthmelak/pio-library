@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#include "Configurations.hpp"
 
 #ifndef WIFI_TIMEOUT
 #define WIFI_TIMEOUT 5000
@@ -18,8 +19,15 @@ struct ConnectionStatus {
 
 class WifiConfig {
   public:
-    WifiConfig(String ssid, String password, String name_default, String hostname_default, bool useOTA = true, bool runWebServer = true);
-    void setDebug(bool value);
+    WifiConfig(
+      String ssid,
+      String password,
+      String name_default,
+      String hostname_default,
+      bool useOTA = true,
+      bool runWebServer = true,
+      bool debug = false
+    );
     void setup();
     void loop();
     bool isWifiConnected();
@@ -28,15 +36,12 @@ class WifiConfig {
     void setupSensorId();
     void setupWebServer();
     void respondJson(const JsonDocument& json, int code = 200);
-    bool debug = false;
     ConnectionStatus wifiStatus;
-    String ssid;
-    String password;
-    String name;
-    String hostname;
+    Configuration config;
     String sensorId;
     bool useOTA;
     bool runWebServer;
+    bool debug;
 };
 
 #endif
