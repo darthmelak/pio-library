@@ -2,7 +2,7 @@
 
 Configuration::Configuration(String path, bool debug): path(path), debug(debug), first(NULL), last(NULL) {}
 
-String Configuration::getPath() {
+String Configuration::getPath() const {
   return path;
 }
 
@@ -60,7 +60,11 @@ void Configuration::toJson(JsonDocument& json) const {
   JsonObject obj = json.to<JsonObject>();
   StringConfig *item = first;
   while (item != NULL) {
-    obj[item->getName()] = item->getValue();
+    if (strcmp(item->getType(), CONF_T_INT) == 0) {
+      obj[item->getName()] = ((IntConfig *) item)->getIntVal();
+    } else {
+      obj[item->getName()] = item->getValue();
+    }
     item = item->getNext();
   }
 }
@@ -81,7 +85,7 @@ void SavedConfiguration::setup() {
   }
 }
 
-int SavedConfiguration::getSize() {
+int SavedConfiguration::getSize() const {
   return size;
 }
 
@@ -101,7 +105,7 @@ SavedConfiguration& SavedConfiguration::add(String name, int defaultValue) {
   return *this;
 }
 
-SavedStringConfig *SavedConfiguration::get(String name) {
+SavedStringConfig *SavedConfiguration::get(String name) const {
   SavedStringConfig *current = first;
   while (current != NULL) {
     if (current->getName() == name) {
@@ -112,7 +116,7 @@ SavedStringConfig *SavedConfiguration::get(String name) {
   return NULL;
 }
 
-SavedIntConfig *SavedConfiguration::getInt(String name) {
+SavedIntConfig *SavedConfiguration::getInt(String name) const {
   SavedStringConfig *current = first;
   while (current != NULL) {
     if (current->getName() == name) {
@@ -133,6 +137,19 @@ void SavedConfiguration::chain(SavedStringConfig *config) {
   }
 }
 
-SavedStringConfig *SavedConfiguration::getFirst() {
+SavedStringConfig *SavedConfiguration::getFirst() const {
   return first;
+}
+
+void SavedConfiguration::toJson(JsonDocument& json) const {
+  JsonObject obj = json.to<JsonObject>();
+  SavedStringConfig *item = first;
+  while (item != NULL) {
+    if (strcmp(item->getType(), CONF_T_INT) == 0) {
+      obj[item->getName()] = ((SavedIntConfig *) item)->getIntVal();
+    } else {
+      obj[item->getName()] = item->getValue();
+    }
+    item = item->getNext();
+  }
 }

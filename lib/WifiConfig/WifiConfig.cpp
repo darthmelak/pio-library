@@ -104,13 +104,13 @@ void WifiConfig::setupSensorId() {
   char tmp[64]; // setupid from hostname-mac
   uint8_t mac[6];
   WiFi.macAddress(mac);
-  const char* hostname = config.get(C_HNAM)->getValue().c_str();
-  sprintf(tmp, "%s-%02x%02x%02x%02x%02x%02x", hostname, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+  String hostname = config.get(C_HNAM)->getValue().c_str();
+  sprintf(tmp, "%s-%02x%02x%02x%02x%02x%02x", hostname.c_str(), mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
   sensorId = tmp;
-  if (debug) Serial.printf("sensorId set to: %d\n", sensorId);
+  if (debug) Serial.printf("sensorId set to: %s\n", sensorId.c_str());
   if (useOTA) {
-    ArduinoOTA.setHostname(hostname);
-    if (debug) Serial.printf("mDNS set to: %s\n", hostname);
+    ArduinoOTA.setHostname(hostname.c_str());
+    if (debug) Serial.printf("mDNS set to: %s\n", hostname.c_str());
   }
 }
 

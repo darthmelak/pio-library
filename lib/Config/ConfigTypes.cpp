@@ -24,6 +24,10 @@ String StringConfig::getValue() const {
   return value;
 }
 
+const char *StringConfig::getType() const {
+  return CONF_T_STR;
+}
+
 /* --== IntConfig ==-- */
 IntConfig::IntConfig(String name, int defaultValue): StringConfig(name, String(defaultValue)), value(defaultValue) {}
 
@@ -37,6 +41,10 @@ String IntConfig::getValue() const {
 
 int IntConfig::getIntVal() const {
   return value;
+}
+
+const char *IntConfig::getType() const {
+  return CONF_T_INT;
 }
 
 /* --== SavedStringConfig ==-- */
@@ -102,6 +110,10 @@ int SavedStringConfig::getLength() const {
   return length;
 }
 
+const char *SavedStringConfig::getType() const {
+  return CONF_T_STR;
+}
+
 #ifdef ESP32
 void SavedStringConfig::setPreferences(Preferences *prefs) {
   SavedStringConfig::prefs = prefs;
@@ -148,4 +160,8 @@ String SavedIntConfig::getValue() const {
 
 int SavedIntConfig::getIntVal() const {
   return value;
+}
+
+const char *SavedIntConfig::getType() const {
+  return CONF_T_INT;
 }

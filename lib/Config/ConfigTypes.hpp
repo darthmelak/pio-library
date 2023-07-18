@@ -6,6 +6,9 @@
   #include <Preferences.h>
 #endif
 
+#define CONF_T_STR "str"
+#define CONF_T_INT "int"
+
 class StringConfig {
   public:
     StringConfig(String name, String defaultValue);
@@ -15,6 +18,7 @@ class StringConfig {
     StringConfig *getNext() const;
     virtual void setValue(String value);
     virtual String getValue() const;
+    virtual const char *getType() const;
   private:
     String name;
     StringConfig *next;
@@ -28,6 +32,7 @@ class IntConfig: public StringConfig {
     void setValue(int value);
     String getValue() const;
     int getIntVal() const;
+    const char *getType() const;
   protected:
     int value;
 };
@@ -43,6 +48,7 @@ class SavedStringConfig {
     virtual void setValue(String value);
     virtual String getValue() const;
     int getLength() const;
+    virtual const char *getType() const;
     #ifdef ESP32
     static void setPreferences(Preferences *prefs);
     #endif
@@ -65,6 +71,7 @@ class SavedIntConfig: public SavedStringConfig {
     void setValue(int value);
     String getValue() const;
     int getIntVal() const;
+    const char *getType() const;
   protected:
     int value;
 };

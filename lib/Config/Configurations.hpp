@@ -14,7 +14,7 @@
 class Configuration {
   public:
     Configuration(String path, bool debug = false);
-    String getPath();
+    String getPath() const;
     Configuration& add(String name, String defaultValue);
     Configuration& add(String name, int defaultValue);
     StringConfig *get(String name) const;
@@ -33,12 +33,13 @@ class SavedConfiguration: public Configuration {
   public:
     SavedConfiguration(String path, bool debug = false);
     void setup();
-    int getSize();
+    int getSize() const;
     SavedConfiguration& add(String name, String defaultValue);
     SavedConfiguration& add(String name, int defaultValue);
-    SavedStringConfig *get(String name);
-    SavedIntConfig *getInt(String name);
-    SavedStringConfig *getFirst();
+    SavedStringConfig *get(String name) const;
+    SavedIntConfig *getInt(String name) const;
+    SavedStringConfig *getFirst() const;
+    void toJson(JsonDocument& json) const;
   protected:
     int size;
     SavedStringConfig *first;
