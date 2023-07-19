@@ -21,6 +21,7 @@ class Configuration {
     IntConfig *getInt(String name) const;
     StringConfig *getFirst() const;
     void toJson(JsonDocument& json) const;
+    void fromJson(JsonDocument& json);
   protected:
     String path;
     bool debug;

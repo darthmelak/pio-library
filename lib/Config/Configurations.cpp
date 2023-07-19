@@ -69,6 +69,21 @@ void Configuration::toJson(JsonDocument& json) const {
   }
 }
 
+void Configuration::fromJson(JsonDocument& json) {
+  JsonObject obj = json.as<JsonObject>();
+  StringConfig *item = first;
+  while (item != NULL) {
+    if (obj.containsKey(item->getName())) {
+      if (strcmp(item->getType(), CONF_T_INT) == 0) {
+        ((IntConfig *) item)->setValue(obj[item->getName()].as<int>());
+      } else {
+        item->setValue(obj[item->getName()].as<String>());
+      }
+    }
+    item = item->getNext();
+  }
+}
+
 SavedConfiguration::SavedConfiguration(String path, bool debug): Configuration(path, debug), size(0) {}
 
 void SavedConfiguration::setup() {

@@ -116,11 +116,33 @@ void WifiConfig::setupSensorId() {
 
 void WifiConfig::setupWebServer()
 {
-  server.on(config.getPath(), HTTP_GET, [this]() {
+  registerConfigApi(config, []() {
+    Serial.println("Config updated");
+  });
+}
+
+void WifiConfig::registerConfigApi(Configuration& config, post_update_cb cb) {
+  server.on(config.getPath(), HTTP_GET, [this, config]() {
     if (debug) Serial.printf("GET %s\n", config.getPath().c_str());
+
     StaticJsonDocument<256> json;
     config.toJson(json);
     respondJson(json);
+  });
+
+  server.on(config.getPath(), HTTP_POST, [this, &config, cb]() {
+    if (server.hasArg("plain") == false) return;
+    if (debug) Serial.printf("POST %s\n", config.getPath().c_str());
+
+    String body = server.arg("plain");
+    StaticJsonDocument<256> json;
+    deserializeJson(json, body);
+    config.fromJson(json);
+
+    json.clear();
+    config.toJson(json);
+    respondJson(json);
+    if (cb != NULL) cb();
   });
 }
 

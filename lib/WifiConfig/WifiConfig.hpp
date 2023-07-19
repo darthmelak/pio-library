@@ -12,6 +12,8 @@
 #define WIFI_RECONNECT_INTERVAL 10000
 #endif
 
+using post_update_cb = void (*)();
+
 struct ConnectionStatus {
   unsigned long from = 0;
   bool connecting = false;
@@ -35,6 +37,7 @@ class WifiConfig {
     void checkWifiConnection();
     void setupSensorId();
     void setupWebServer();
+    void registerConfigApi(Configuration& config, post_update_cb cb = NULL);
     void respondJson(const JsonDocument& json, int code = 200);
     ConnectionStatus wifiStatus;
     Configuration config;
