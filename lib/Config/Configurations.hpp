@@ -14,14 +14,15 @@
 class Configuration {
   public:
     Configuration(String path, bool debug = false);
+    virtual ~Configuration() {};
     String getPath() const;
     Configuration& add(String name, String defaultValue);
     Configuration& add(String name, int defaultValue);
     StringConfig *get(String name) const;
     IntConfig *getInt(String name) const;
     StringConfig *getFirst() const;
-    void toJson(JsonDocument& json) const;
-    void fromJson(JsonDocument& json);
+    virtual void toJson(JsonDocument& json) const;
+    virtual bool fromJson(JsonDocument& json);
   protected:
     String path;
     bool debug;
@@ -41,6 +42,7 @@ class SavedConfiguration: public Configuration {
     SavedIntConfig *getInt(String name) const;
     SavedStringConfig *getFirst() const;
     void toJson(JsonDocument& json) const;
+    bool fromJson(JsonDocument& json);
   protected:
     int size;
     SavedStringConfig *first;

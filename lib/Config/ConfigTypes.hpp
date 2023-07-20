@@ -16,7 +16,7 @@ class StringConfig {
     String getName() const;
     void setNext(StringConfig *next);
     StringConfig *getNext() const;
-    virtual void setValue(String value);
+    virtual bool setValue(String value);
     virtual String getValue() const;
     virtual const char *getType() const;
   private:
@@ -29,7 +29,7 @@ class StringConfig {
 class IntConfig: public StringConfig {
   public:
     IntConfig(String name, int defaultValue);
-    void setValue(int value);
+    bool setValue(int value);
     String getValue() const;
     int getIntVal() const;
     const char *getType() const;
@@ -45,7 +45,7 @@ class SavedStringConfig {
     String getName() const;
     void setNext(SavedStringConfig *next);
     SavedStringConfig *getNext() const;
-    virtual void setValue(String value);
+    virtual bool setValue(String value);
     virtual String getValue() const;
     int getLength() const;
     virtual const char *getType() const;
@@ -68,7 +68,7 @@ class SavedIntConfig: public SavedStringConfig {
   public:
     SavedIntConfig(String name, int defaultValue, int offset = 0, int length = 6);
     void setup();
-    void setValue(int value);
+    bool setValue(int value);
     String getValue() const;
     int getIntVal() const;
     const char *getType() const;

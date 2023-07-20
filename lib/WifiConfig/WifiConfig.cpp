@@ -41,7 +41,7 @@ WifiConfig::WifiConfig(
 
 void WifiConfig::setup() {
   if (debug) Serial.println("\n\nWifiConfig init ...");
-  // config.setup();
+  config.setup();
   setupSensorId();
   if (runWebServer) setupWebServer();
   WiFi.mode(WIFI_STA);
@@ -114,35 +114,35 @@ void WifiConfig::setupSensorId() {
   }
 }
 
-void WifiConfig::setupWebServer()
-{
-  registerConfigApi(config, []() {
-    Serial.println("Config updated");
+void WifiConfig::setupWebServer() {
+  registerConfigApi(config, [this](bool changed) {
+    if (debug) Serial.printf("Wifi-config: %s\n", changed ? "saved" : "not changed");
   });
 }
 
-void WifiConfig::registerConfigApi(Configuration& config, post_update_cb cb) {
-  server.on(config.getPath(), HTTP_GET, [this, config]() {
-    if (debug) Serial.printf("GET %s\n", config.getPath().c_str());
+void WifiConfig::registerConfigApi(Configuration& configuration, post_update_cb cb) {
+
+  server.on(configuration.getPath(), HTTP_GET, [this, &configuration]() {
+    if (debug) Serial.printf("GET %s\n", configuration.getPath().c_str());
 
     StaticJsonDocument<256> json;
-    config.toJson(json);
+    configuration.toJson(json);
     respondJson(json);
   });
 
-  server.on(config.getPath(), HTTP_POST, [this, &config, cb]() {
+  server.on(configuration.getPath(), HTTP_POST, [this, &configuration, cb]() {
     if (server.hasArg("plain") == false) return;
-    if (debug) Serial.printf("POST %s\n", config.getPath().c_str());
+    if (debug) Serial.printf("POST %s\n", configuration.getPath().c_str());
 
     String body = server.arg("plain");
     StaticJsonDocument<256> json;
     deserializeJson(json, body);
-    config.fromJson(json);
+    bool changed = configuration.fromJson(json);
 
     json.clear();
-    config.toJson(json);
+    configuration.toJson(json);
     respondJson(json);
-    if (cb != NULL) cb();
+    if (cb != NULL) cb(changed);
   });
 }
 

@@ -16,8 +16,11 @@ StringConfig *StringConfig::getNext() const {
   return next;
 }
 
-void StringConfig::setValue(String value) {
+bool StringConfig::setValue(String value) {
+  if (this->value == value) return false;
+
   this->value = value;
+  return true;
 }
 
 String StringConfig::getValue() const {
@@ -31,8 +34,11 @@ const char *StringConfig::getType() const {
 /* --== IntConfig ==-- */
 IntConfig::IntConfig(String name, int defaultValue): StringConfig(name, String(defaultValue)), value(defaultValue) {}
 
-void IntConfig::setValue(int value) {
+bool IntConfig::setValue(int value) {
+  if (this->value == value) return false;
+
   this->value = value;
+  return true;
 }
 
 String IntConfig::getValue() const {
@@ -54,6 +60,7 @@ SavedStringConfig::SavedStringConfig(
   int offset,
   int length
 ): name(name),
+  next(NULL),
   value(defaultValue),
   offset(offset),
   length(length) {}
@@ -86,7 +93,9 @@ SavedStringConfig *SavedStringConfig::getNext() const {
   return next;
 }
 
-void SavedStringConfig::setValue(String value) {
+bool SavedStringConfig::setValue(String value) {
+  if (this->value == value) return false;
+
   this->value = value;
   #ifdef ESP8266
   for (int i = 0; i < length; i++) {
@@ -100,6 +109,7 @@ void SavedStringConfig::setValue(String value) {
   #else
   prefs->putString(getName().c_str(), value);
   #endif
+  return true;
 }
 
 String SavedStringConfig::getValue() const {
@@ -144,13 +154,16 @@ void SavedIntConfig::setup() {
   #endif
 }
 
-void SavedIntConfig::setValue(int value) {
+bool SavedIntConfig::setValue(int value) {
+  if (this->value == value) return false;
+
   #ifdef ESP8266
-  SavedStringConfig::setValue(String(value));
+  return SavedStringConfig::setValue(String(value));
   #endif
   this->value = value;
   #ifdef ESP32
   prefs->putInt(getName().c_str(), value);
+  return true;
   #endif
 }
 

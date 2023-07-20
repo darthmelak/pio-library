@@ -12,7 +12,7 @@
 #define WIFI_RECONNECT_INTERVAL 10000
 #endif
 
-using post_update_cb = void (*)();
+typedef std::function<void(bool)> post_update_cb;
 
 struct ConnectionStatus {
   unsigned long from = 0;
@@ -33,14 +33,14 @@ class WifiConfig {
     void setup();
     void loop();
     bool isWifiConnected();
+    void registerConfigApi(Configuration& configuration, post_update_cb cb = NULL);
   protected:
     void checkWifiConnection();
     void setupSensorId();
     void setupWebServer();
-    void registerConfigApi(Configuration& config, post_update_cb cb = NULL);
     void respondJson(const JsonDocument& json, int code = 200);
     ConnectionStatus wifiStatus;
-    Configuration config;
+    SavedConfiguration config;
     String sensorId;
     bool useOTA;
     bool runWebServer;

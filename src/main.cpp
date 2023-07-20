@@ -8,7 +8,7 @@
 bool debug = true;
 bool echoCount = false;
 
-Configuration config("", debug);
+Configuration config("/test", debug);
 WifiConfig wifiConfig(WIFI_SSID, WIFI_PASSWORD, "Testbed", "testbed", true, true, debug);
 #ifdef ESP8266
 int pin = D7;
@@ -35,6 +35,14 @@ void setup() {
     .add("counter", 0)
   ;
 
+  wifiConfig.registerConfigApi(config, [](bool changed) {
+    if (changed) {
+      Serial.println("Config updated");
+    } else {
+      Serial.println("Config unchanged");
+    }
+  });
+
   pinMode(pin, OUTPUT);
   pinMode(pin2, OUTPUT);
   digitalWrite(pin2, LOW);
@@ -45,6 +53,7 @@ void setup() {
     if (debug && echoCount) Serial.println(counter->getValue());
     return true;
   });
+  // config.setup();
 
   wifiConfig.setup();
   digitalWrite(pin, LOW);
@@ -66,10 +75,6 @@ void handleSerial() {
   if (c != '\n' && c != '\r') {
     buffer += c;
   } else {
-    if (buffer == "reset") {
-      Serial.println("Resetting counter");
-      config.getInt("counter")->setValue(0);
-    }
     if (buffer == "echo") {
       echoCount = !echoCount;
       Serial.println("Echo counter: " + String(echoCount));

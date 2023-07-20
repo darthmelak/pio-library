@@ -59,6 +59,7 @@ StringConfig *Configuration::getFirst() const {
 void Configuration::toJson(JsonDocument& json) const {
   JsonObject obj = json.to<JsonObject>();
   StringConfig *item = first;
+
   while (item != NULL) {
     if (strcmp(item->getType(), CONF_T_INT) == 0) {
       obj[item->getName()] = ((IntConfig *) item)->getIntVal();
@@ -69,19 +70,22 @@ void Configuration::toJson(JsonDocument& json) const {
   }
 }
 
-void Configuration::fromJson(JsonDocument& json) {
+bool Configuration::fromJson(JsonDocument& json) {
   JsonObject obj = json.as<JsonObject>();
+  bool changed = false;
   StringConfig *item = first;
+
   while (item != NULL) {
     if (obj.containsKey(item->getName())) {
       if (strcmp(item->getType(), CONF_T_INT) == 0) {
-        ((IntConfig *) item)->setValue(obj[item->getName()].as<int>());
+        changed = ((IntConfig *) item)->setValue(obj[item->getName()].as<int>()) || changed;
       } else {
-        item->setValue(obj[item->getName()].as<String>());
+        changed = item->setValue(obj[item->getName()].as<String>()) || changed;
       }
     }
     item = item->getNext();
   }
+  return changed;
 }
 
 SavedConfiguration::SavedConfiguration(String path, bool debug): Configuration(path, debug), size(0) {}
@@ -142,16 +146,6 @@ SavedIntConfig *SavedConfiguration::getInt(String name) const {
   return NULL;
 }
 
-void SavedConfiguration::chain(SavedStringConfig *config) {
-  if (first == NULL) {
-    first = config;
-    last = config;
-  } else {
-    last->setNext(config);
-    last = config;
-  }
-}
-
 SavedStringConfig *SavedConfiguration::getFirst() const {
   return first;
 }
@@ -159,6 +153,7 @@ SavedStringConfig *SavedConfiguration::getFirst() const {
 void SavedConfiguration::toJson(JsonDocument& json) const {
   JsonObject obj = json.to<JsonObject>();
   SavedStringConfig *item = first;
+
   while (item != NULL) {
     if (strcmp(item->getType(), CONF_T_INT) == 0) {
       obj[item->getName()] = ((SavedIntConfig *) item)->getIntVal();
@@ -166,5 +161,33 @@ void SavedConfiguration::toJson(JsonDocument& json) const {
       obj[item->getName()] = item->getValue();
     }
     item = item->getNext();
+  }
+}
+
+bool SavedConfiguration::fromJson(JsonDocument& json) {
+  JsonObject obj = json.as<JsonObject>();
+  bool changed = false;
+  SavedStringConfig *item = first;
+
+  while (item != NULL) {
+    if (obj.containsKey(item->getName())) {
+      if (strcmp(item->getType(), CONF_T_INT) == 0) {
+        changed = ((SavedIntConfig *) item)->setValue(obj[item->getName()].as<int>()) || changed;
+      } else {
+        changed = item->setValue(obj[item->getName()].as<String>()) || changed;
+      }
+    }
+    item = item->getNext();
+  }
+  return changed;
+}
+
+void SavedConfiguration::chain(SavedStringConfig *config) {
+  if (first == NULL) {
+    first = config;
+    last = config;
+  } else {
+    last->setNext(config);
+    last = config;
   }
 }
