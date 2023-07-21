@@ -6,15 +6,15 @@ String Configuration::getPath() const {
   return path;
 }
 
-Configuration& Configuration::add(String name, String defaultValue) {
-  StringConfig *config = new StringConfig(name, defaultValue);
+Configuration& Configuration::add(String name, String defaultValue, str_update_cb cb) {
+  StringConfig *config = new StringConfig(name, defaultValue, cb);
   chain(config);
 
   return *this;
 }
 
-Configuration& Configuration::add(String name, int defaultValue) {
-  IntConfig *config = new IntConfig(name, defaultValue);
+Configuration& Configuration::add(String name, int defaultValue, int_update_cb cb) {
+  IntConfig *config = new IntConfig(name, defaultValue, cb);
   chain(config);
 
   return *this;
@@ -108,16 +108,16 @@ int SavedConfiguration::getSize() const {
   return size;
 }
 
-SavedConfiguration& SavedConfiguration::add(String name, String defaultValue) {
-  SavedStringConfig *config = new SavedStringConfig(name, defaultValue, size);
+SavedConfiguration& SavedConfiguration::add(String name, String defaultValue, str_update_cb cb, int length) {
+  SavedStringConfig *config = new SavedStringConfig(name, defaultValue, cb, size, length);
   size += config->getLength();
   chain(config);
 
   return *this;
 }
 
-SavedConfiguration& SavedConfiguration::add(String name, int defaultValue) {
-  SavedIntConfig *config = new SavedIntConfig(name, defaultValue, size);
+SavedConfiguration& SavedConfiguration::add(String name, int defaultValue, int_update_cb cb) {
+  SavedIntConfig *config = new SavedIntConfig(name, defaultValue, cb, size);
   size += config->getLength();
   chain(config);
 

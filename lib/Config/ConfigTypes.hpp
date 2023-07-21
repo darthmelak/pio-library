@@ -9,9 +9,12 @@
 #define CONF_T_STR "str"
 #define CONF_T_INT "int"
 
+typedef std::function<void(String)> str_update_cb;
+typedef std::function<void(int)> int_update_cb;
+
 class StringConfig {
   public:
-    StringConfig(String name, String defaultValue);
+    StringConfig(String name, String defaultValue, str_update_cb cb = NULL);
     virtual ~StringConfig() {};
     String getName() const;
     void setNext(StringConfig *next);
@@ -24,22 +27,24 @@ class StringConfig {
     StringConfig *next;
   protected:
     String value;
+    str_update_cb cb;
 };
 
 class IntConfig: public StringConfig {
   public:
-    IntConfig(String name, int defaultValue);
+    IntConfig(String name, int defaultValue, int_update_cb cb = NULL);
     bool setValue(int value);
     String getValue() const;
     int getIntVal() const;
     const char *getType() const;
   protected:
     int value;
+    int_update_cb cb;
 };
 
 class SavedStringConfig {
   public:
-    SavedStringConfig(String name, String defaultValue, int offset = 0, int length = 64);
+    SavedStringConfig(String name, String defaultValue, str_update_cb cb = NULL, int offset = 0, int length = 64);
     virtual ~SavedStringConfig() {};
     virtual void setup();
     String getName() const;
@@ -59,6 +64,7 @@ class SavedStringConfig {
     String value;
     int offset;
     int length;
+    str_update_cb cb;
     #ifdef ESP32
     static Preferences *prefs;
     #endif
@@ -66,7 +72,7 @@ class SavedStringConfig {
 
 class SavedIntConfig: public SavedStringConfig {
   public:
-    SavedIntConfig(String name, int defaultValue, int offset = 0, int length = 6);
+    SavedIntConfig(String name, int defaultValue, int_update_cb cb = NULL, int offset = 0, int length = 6);
     void setup();
     bool setValue(int value);
     String getValue() const;
@@ -74,6 +80,7 @@ class SavedIntConfig: public SavedStringConfig {
     const char *getType() const;
   protected:
     int value;
+    int_update_cb cb;
 };
 
 #endif

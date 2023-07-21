@@ -31,8 +31,13 @@ void setup() {
     .add("ssid", WIFI_SSID)
     .add("password", WIFI_PASSWORD)
     .add("name", "Testbed")
-    .add("hostname", "testbed")
+    .add("hostname", "testbed", [](String value) {
+      Serial.printf("Hostname changed to: %s\n", value.c_str());
+    })
     .add("counter", 0)
+    .add("light", 0, [](int value) {
+      digitalWrite(pin, value);
+    })
   ;
 
   wifiConfig.registerConfigApi(config, [](bool changed) {

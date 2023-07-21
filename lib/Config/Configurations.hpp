@@ -16,8 +16,8 @@ class Configuration {
     Configuration(String path, bool debug = false);
     virtual ~Configuration() {};
     String getPath() const;
-    Configuration& add(String name, String defaultValue);
-    Configuration& add(String name, int defaultValue);
+    Configuration& add(String name, String defaultValue, str_update_cb cb = NULL);
+    Configuration& add(String name, int defaultValue, int_update_cb cb = NULL);
     StringConfig *get(String name) const;
     IntConfig *getInt(String name) const;
     StringConfig *getFirst() const;
@@ -36,8 +36,8 @@ class SavedConfiguration: public Configuration {
     SavedConfiguration(String path, bool debug = false);
     void setup();
     int getSize() const;
-    SavedConfiguration& add(String name, String defaultValue);
-    SavedConfiguration& add(String name, int defaultValue);
+    SavedConfiguration& add(String name, String defaultValue, str_update_cb cb = NULL, int length = 64);
+    SavedConfiguration& add(String name, int defaultValue, int_update_cb cb = NULL);
     SavedStringConfig *get(String name) const;
     SavedIntConfig *getInt(String name) const;
     SavedStringConfig *getFirst() const;
