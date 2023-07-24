@@ -11,11 +11,17 @@ bool echoCount = false;
 Configuration config("/test", debug);
 WifiConfig wifiConfig(WIFI_SSID, WIFI_PASSWORD, "Testbed", "testbed", true, true, debug);
 #ifdef ESP8266
-int pin = D7;
-int pin2 = D6;
+int yellow = D7;
+int red = D6;
+int green = D1;
+int white = D2;
+int button = D5;
 #else
-int pin = 7;
-int pin2 = 6;
+int yellow = 7;
+int red = 6;
+int green = 5;
+int white = 4;
+int button = 3;
 #endif
 Timer<2> timer;
 
@@ -32,11 +38,15 @@ void setup() {
     .add("password", WIFI_PASSWORD)
     .add("name", "Testbed")
     .add("hostname", "testbed", [](String value) {
-      Serial.printf("Hostname changed to: %s\n", value.c_str());
+      Serial.printf("Hostname test changed to: %s\n", value.c_str());
     })
-    .add("counter", 0)
+    .add("counter", 0, [](int value) {
+      wifiConfig.publish("/state/counter", String(value));
+    })
     .add("light", 0, [](int value) {
-      digitalWrite(pin, value);
+      Serial.printf("Red changed to: %d\n", value);
+      digitalWrite(red, value);
+      wifiConfig.publish("/state/led", String(value));
     })
   ;
 
@@ -48,11 +58,17 @@ void setup() {
     }
   });
 
-  pinMode(pin, OUTPUT);
-  pinMode(pin2, OUTPUT);
-  digitalWrite(pin2, LOW);
+  pinMode(yellow, OUTPUT);
+  digitalWrite(yellow, LOW);
+  pinMode(red, OUTPUT);
+  digitalWrite(red, LOW);
+  pinMode(green, OUTPUT);
+  digitalWrite(green, LOW);
+  pinMode(white, OUTPUT);
+  digitalWrite(white, LOW);
+  pinMode(button, INPUT_PULLUP);
   timer.every(1000, [](void*) -> bool {
-    digitalWrite(pin2, !digitalRead(pin2));
+    digitalWrite(green, !digitalRead(green));
     IntConfig *counter = config.getInt("counter");
     counter->setValue(counter->getIntVal() + 1);
     if (debug && echoCount) Serial.println(counter->getValue());
@@ -60,14 +76,27 @@ void setup() {
   });
   // config.setup();
 
-  wifiConfig.setup();
-  digitalWrite(pin, LOW);
+  wifiConfig.setupMQTT(
+    MQTT_SERVER,
+    1883,
+    MQTT_USER,
+    MQTT_PASS,
+    "testbed/",
+    MQTTConnectProps([]() {
+      wifiConfig.subscribe("/cmd/led");
+    }, [](String topic, JsonDocument& json) {
+      if (topic == wifiConfig.getPrefixedTopic("/cmd/led")) {
+        int state = json.as<int>();
+        config.getInt("light")->setValue(state);
+      }
+    })
+  );
 }
 
 void loop() {
   handleSerial();
   wifiConfig.loop();
-  digitalWrite(pin, wifiConfig.isWifiConnected() ? LOW : HIGH);
+  digitalWrite(yellow, wifiConfig.isWifiConnected() ? LOW : HIGH);
   timer.tick();
   delay(1);
 }

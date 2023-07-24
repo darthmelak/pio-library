@@ -6,18 +6,28 @@
 #include <WebServer.h>
 #endif
 #include <ArduinoOTA.h>
+#include <WiFiClient.h>
+#include <PubSubClient.h>
 #include "WifiConfig.hpp"
 
 #define C_SSID "ssid"
 #define C_PASS "password"
 #define C_NAME "name"
 #define C_HNAM "hostname"
+#define C_MQ_SERV "mqtt_server"
+#define C_MQ_PORT "mqtt_port"
+#define C_MQ_USER "mqtt_user"
+#define C_MQ_PASS "mqtt_password"
+#define C_MQ_PREF "mqtt_prefix"
 
 #ifdef ESP8266
 ESP8266WebServer server;
 #else
 WebServer server;
 #endif
+WiFiClient wifiClient;
+PubSubClient mqtt(wifiClient);
+char mqttServer[64];
 
 WifiConfig::WifiConfig(
   String ssid,
@@ -30,7 +40,10 @@ WifiConfig::WifiConfig(
 ): config("/config", debug),
   useOTA(useOTA),
   runWebServer(runWebServer),
-  debug(debug)
+  debug(debug),
+  runMQTT(false),
+  mqttFrom(0),
+  mqttPrefix("")
 {
   config
     .add(C_SSID, ssid)
@@ -44,17 +57,84 @@ void WifiConfig::setup() {
   config.setup();
   setupSensorId();
   if (runWebServer) setupWebServer();
+  if (runMQTT) setupMosquitto();
   WiFi.mode(WIFI_STA);
+}
+
+void WifiConfig::setupMQTT(
+  String mqtt_server_default,
+  int mqtt_port_default,
+  String mqtt_user_default,
+  String mqtt_password_default,
+  String mqtt_prefix_default,
+  MQTTConnectProps props
+) {
+  runMQTT = true;
+  config
+    .add(C_MQ_SERV, mqtt_server_default)
+    .add(C_MQ_PORT, mqtt_port_default)
+    .add(C_MQ_USER, mqtt_user_default)
+    .add(C_MQ_PASS, mqtt_password_default)
+    .add(C_MQ_PREF, mqtt_prefix_default);
+  mqttProps = props;
+  setup();
 }
 
 void WifiConfig::loop() {
   checkWifiConnection();
   if (isWifiConnected() && useOTA) ArduinoOTA.handle();
   if (isWifiConnected() && runWebServer) server.handleClient();
+  if (isWifiConnected() && runMQTT) checkMQTTConnection();
 }
 
 bool WifiConfig::isWifiConnected() {
   return WiFi.status() == WL_CONNECTED;
+}
+
+void WifiConfig::registerConfigApi(Configuration& configuration, post_update_cb cb) {
+
+  server.on(configuration.getPath(), HTTP_GET, [this, &configuration]() {
+    if (debug) Serial.printf("GET %s\n", configuration.getPath().c_str());
+
+    StaticJsonDocument<CONFIG_JSON_SIZE> json;
+    configuration.toJson(json);
+    respondJson(json);
+  });
+
+  server.on(configuration.getPath(), HTTP_POST, [this, &configuration, cb]() {
+    if (server.hasArg("plain") == false) return;
+    if (debug) Serial.printf("POST %s\n", configuration.getPath().c_str());
+
+    String body = server.arg("plain");
+    StaticJsonDocument<CONFIG_JSON_SIZE> json;
+    deserializeJson(json, body);
+    bool changed = configuration.fromJson(json);
+
+    json.clear();
+    configuration.toJson(json);
+    respondJson(json);
+    if (cb != NULL) cb(changed);
+  });
+}
+
+bool WifiConfig::subscribe(String topic, bool prefix) {
+  if (!runMQTT || !mqtt.connected()) return false;
+
+  String fullTopic = prefix ? getPrefixedTopic(topic) : topic;
+  if (debug) Serial.printf("MQTT subscribe: %s\n", fullTopic.c_str());
+  return mqtt.subscribe(fullTopic.c_str());
+}
+
+void WifiConfig::publish(String topic, String payload, bool retain, bool prefix) {
+  if (!runMQTT || !mqtt.connected()) return;
+
+  String fullTopic = prefix ? getPrefixedTopic(topic) : topic;
+  if (debug) Serial.printf("MQTT publish: %s: %s\n", fullTopic.c_str(), payload.c_str());
+  mqtt.publish(fullTopic.c_str(), payload.c_str(), retain);
+}
+
+String WifiConfig::getPrefixedTopic(String topic = "") {
+  return mqttPrefix + topic;
 }
 
 void WifiConfig::checkWifiConnection() {
@@ -112,6 +192,9 @@ void WifiConfig::setupSensorId() {
     ArduinoOTA.setHostname(hostname.c_str());
     if (debug) Serial.printf("mDNS set to: %s\n", hostname.c_str());
   }
+  if (runMQTT) {
+    mqttPrefix = config.get(C_MQ_PREF)->getValue() + "/" + sensorId;
+  }
 }
 
 void WifiConfig::setupWebServer() {
@@ -120,30 +203,39 @@ void WifiConfig::setupWebServer() {
   });
 }
 
-void WifiConfig::registerConfigApi(Configuration& configuration, post_update_cb cb) {
+void WifiConfig::setupMosquitto() {
+  strcpy(mqttServer, config.get(C_MQ_SERV)->getValue().c_str());
+  mqtt.setServer(mqttServer, config.getInt(C_MQ_PORT)->getIntVal());
+  mqtt.setBufferSize(MQTT_BUFFER_SIZE);
+  mqtt.setCallback([this](char* topic, byte* payload, unsigned int length) {
+    payload[length] = '\0';
+    String data = String((char*) payload);
 
-  server.on(configuration.getPath(), HTTP_GET, [this, &configuration]() {
-    if (debug) Serial.printf("GET %s\n", configuration.getPath().c_str());
+    if (debug) Serial.printf("MQTT CB: %s: %s\n", topic, data.c_str());
 
-    StaticJsonDocument<256> json;
-    configuration.toJson(json);
-    respondJson(json);
+    StaticJsonDocument<MQTT_BUFFER_SIZE> json;
+    deserializeJson(json, data);
+
+    if (mqttProps.cb != NULL) mqttProps.cb(topic, json);
   });
+}
 
-  server.on(configuration.getPath(), HTTP_POST, [this, &configuration, cb]() {
-    if (server.hasArg("plain") == false) return;
-    if (debug) Serial.printf("POST %s\n", configuration.getPath().c_str());
+void WifiConfig::checkMQTTConnection() {
+  if (mqtt.connected()) {
+    mqtt.loop();
+    return;
+  }
 
-    String body = server.arg("plain");
-    StaticJsonDocument<256> json;
-    deserializeJson(json, body);
-    bool changed = configuration.fromJson(json);
+  if (mqttFrom > 0 && millis() - mqttFrom < MQTT_RECONNECT_INTERVAL) return;
 
-    json.clear();
-    configuration.toJson(json);
-    respondJson(json);
-    if (cb != NULL) cb(changed);
-  });
+  if (debug) Serial.printf("Connecting to MQTT on %s:%d\n", mqttServer, config.getInt(C_MQ_PORT)->getIntVal());
+  bool success = mqtt.connect(sensorId.c_str(), config.get(C_MQ_USER)->getValue().c_str(), config.get(C_MQ_PASS)->getValue().c_str());
+  if (debug) {
+    if (success) Serial.println("MQTT connection successful");
+    else Serial.printf("MQTT connection failed: %d\n", mqtt.state());
+  }
+  if (!success) mqttFrom = millis();
+  else if (mqttProps.connect_cb != NULL) mqttProps.connect_cb();
 }
 
 void WifiConfig::respondJson(const JsonDocument& json, int code) {
