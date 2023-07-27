@@ -1,6 +1,7 @@
 // Testbed for the libraries, led on
 #include <Arduino.h>
 #include <arduino-timer.h>
+#include <OneButton.h>
 #include "Configurations.hpp"
 #include "WifiConfig.hpp"
 #include "secrets.h"
@@ -24,6 +25,7 @@ int white = 4;
 int button = 3;
 #endif
 Timer<2> timer;
+OneButton btn(button);
 
 void handleSerial();
 
@@ -45,10 +47,17 @@ void setup() {
     })
     .add("light", 0, [](int value) {
       Serial.printf("Red changed to: %d\n", value);
-      digitalWrite(red, value);
+      analogWrite(red, value);
       wifiConfig.publish("/state/led", String(value));
     })
   ;
+
+  IntConfig *light = config.getInt("light");
+
+  btn.attachClick([](void *ctx) {
+    IntConfig *lght = (IntConfig *)ctx;
+    lght->setValue(lght->getIntVal() > 0 ? 0 : 255);
+  }, light);
 
   wifiConfig.registerConfigApi(config, [](bool changed) {
     if (changed) {
@@ -98,6 +107,7 @@ void loop() {
   wifiConfig.loop();
   digitalWrite(yellow, wifiConfig.isWifiConnected() ? LOW : HIGH);
   timer.tick();
+  btn.tick();
   delay(1);
 }
 
