@@ -1,0 +1,19 @@
+{
+  "name": "darthmelak-esp-config",
+  "version": "0.8.0",
+  "license": "MIT",
+  "frameworks": ["arduino"],
+  "platforms": [
+    "espressif8266",
+    "espressif32"
+  ],
+  "headers": [
+    "ConfigTypes.hpp",
+    "Configurations.hpp",
+    "WifiConfig.hpp"
+  ],
+  "dependencies": {
+    "bblanchon/ArduinoJson": "^6.19.4",
+    "knolleary/PubSubClient": "^2.8"
+  }
+}
