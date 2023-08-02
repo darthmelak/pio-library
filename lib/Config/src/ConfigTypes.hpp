@@ -2,7 +2,9 @@
 #define ConfigTypes_h
 
 #include <Arduino.h>
-#ifdef ESP32
+#ifdef ESP8266
+  #include <EEPROM.h>
+#else
   #include <Preferences.h>
 #endif
 

@@ -1,4 +1,3 @@
-#include <EEPROM.h>
 #include "ConfigTypes.hpp"
 
 /* --== StringConfig ==-- */

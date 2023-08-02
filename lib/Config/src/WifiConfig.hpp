@@ -70,6 +70,7 @@ class WifiConfig {
     bool subscribe(String topic, bool prefix = true);
     void publish(String topic, String payload, bool retain = false, bool prefix = true);
     String getPrefixedTopic(String topic);
+    SavedConfiguration getConfig();
   protected:
     void checkWifiConnection();
     void setupSensorId();

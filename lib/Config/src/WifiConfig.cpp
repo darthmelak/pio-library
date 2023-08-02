@@ -137,6 +137,10 @@ String WifiConfig::getPrefixedTopic(String topic = "") {
   return mqttPrefix + topic;
 }
 
+SavedConfiguration WifiConfig::getConfig() {
+  return config;
+}
+
 void WifiConfig::checkWifiConnection() {
   if (WiFi.status() == WL_CONNECTED && !wifiStatus.connecting) return;
 

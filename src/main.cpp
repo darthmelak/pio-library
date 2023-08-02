@@ -4,6 +4,7 @@
 #include <OneButton.h>
 #include "Configurations.hpp"
 #include "WifiConfig.hpp"
+#include "SerialHandler.hpp"
 #include "secrets.h"
 
 bool debug = true;
@@ -27,7 +28,7 @@ int button = 3;
 Timer<2> timer;
 OneButton btn(button);
 
-void handleSerial();
+void serialCb(String);
 
 void setup() {
   if (debug) {
@@ -103,7 +104,7 @@ void setup() {
 }
 
 void loop() {
-  handleSerial();
+  handleSerial(debug, serialCb);
   wifiConfig.loop();
   digitalWrite(yellow, wifiConfig.isWifiConnected() ? LOW : HIGH);
   timer.tick();
@@ -111,33 +112,23 @@ void loop() {
   delay(1);
 }
 
-void handleSerial() {
-  static String buffer = "";
-  if (!debug || !Serial.available()) return;
-
-  char c = Serial.read();
-  if (c != '\n' && c != '\r') {
-    buffer += c;
-  } else {
-    if (buffer == "echo") {
-      echoCount = !echoCount;
-      Serial.println("Echo counter: " + String(echoCount));
+void serialCb(String buffer) {
+  if (buffer == "echo") {
+    echoCount = !echoCount;
+    Serial.println("Echo counter: " + String(echoCount));
+  }
+  if (buffer == "test") {
+    StringConfig *item = config.getFirst();
+    while (item != NULL) {
+      Serial.println(item->getName() + ": " + item->getValue());
+      item = item->getNext();
     }
-    if (buffer == "test") {
-      StringConfig *item = config.getFirst();
-      while (item != NULL) {
-        Serial.println(item->getName() + ": " + item->getValue());
-        item = item->getNext();
-      }
-    }
-    if (buffer == "json") {
-      DynamicJsonDocument json(256);
-      config.toJson(json);
-      String response;
-      serializeJson(json, response);
-      Serial.println(response);
-    }
-
-    buffer = "";
+  }
+  if (buffer == "json") {
+    DynamicJsonDocument json(256);
+    config.toJson(json);
+    String response;
+    serializeJson(json, response);
+    Serial.println(response);
   }
 }

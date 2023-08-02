@@ -10,7 +10,8 @@
   "headers": [
     "ConfigTypes.hpp",
     "Configurations.hpp",
-    "WifiConfig.hpp"
+    "WifiConfig.hpp",
+    "SerialHandler.hpp"
   ],
   "dependencies": {
     "bblanchon/ArduinoJson": "^6.19.4",
