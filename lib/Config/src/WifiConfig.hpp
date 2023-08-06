@@ -78,6 +78,11 @@ class WifiConfig {
      */
     String binarySensorConfigPayload(String suffix, String deviceClass);
     /**
+     * generates sensor config payload
+     * state topic: `sensor/{sensorId}_{suffix}/state`
+     */
+    String sensorConfigPayload(String suffix, String deviceClass, String unit);
+    /**
      * generates switch config payload
      * cmd topic: `switch/{sensorId}_{suffix}/cmd`
      * state topic: `switch/{sensorId}_{suffix}/state`

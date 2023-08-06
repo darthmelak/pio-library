@@ -170,6 +170,27 @@ String WifiConfig::binarySensorConfigPayload(String suffix, String deviceClass) 
   return jsonStr;
 }
 
+String WifiConfig::sensorConfigPayload(String suffix, String deviceClass, String unit) {
+  String name = config.get(C_NAME)->getValue();
+  String statTopic = "sensor/{sensorId}_{suffix}/state";
+  statTopic.replace("{suffix}", suffix);
+
+  StaticJsonDocument<512> json;
+  json["dev"]["identifiers"] = sensorId;
+  json["dev"]["model"] = config.get(C_MODL)->getValue();
+  json["dev"]["name"] = name;
+  json["dev_cla"] = deviceClass;
+  json["name"] = name + " " + suffix;
+  json["stat_t"] = getPrefixedTopic(statTopic);
+  json["stat_cla"] = "measurement";
+  json["unit_of_meas"] = unit;
+  json["uniq_id"] = sensorId + "_" + suffix;
+
+  String jsonStr;
+  serializeJson(json, jsonStr);
+  return jsonStr;
+}
+
 String WifiConfig::switchConfigPayload(String suffix) {
   String name = config.get(C_NAME)->getValue();
   String cmdTopic = "switch/{sensorId}_{suffix}/cmd";
