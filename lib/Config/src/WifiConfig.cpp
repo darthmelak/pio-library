@@ -14,6 +14,7 @@
 #define C_PASS "password"
 #define C_NAME "name"
 #define C_HNAM "hostname"
+#define C_MODL "model"
 #define C_MQ_SERV "mqtt_server"
 #define C_MQ_PORT "mqtt_port"
 #define C_MQ_USER "mqtt_user"
@@ -21,8 +22,10 @@
 #define C_MQ_PREF "mqtt_prefix"
 
 #ifdef ESP8266
+#define MODEL_DEFAULT "ESP8266"
 ESP8266WebServer server;
 #else
+#define MODEL_DEFAULT "ESP32"
 WebServer server;
 #endif
 WiFiClient wifiClient;
@@ -49,7 +52,8 @@ WifiConfig::WifiConfig(
     .add(C_SSID, ssid)
     .add(C_PASS, password)
     .add(C_NAME, name_default)
-    .add(C_HNAM, hostname_default);
+    .add(C_HNAM, hostname_default)
+    .add(C_MODL, MODEL_DEFAULT);
 }
 
 void WifiConfig::setup() {
@@ -145,6 +149,87 @@ SavedConfiguration WifiConfig::getConfig() {
 
 String WifiConfig::getSensorId() {
   return sensorId;
+}
+
+String WifiConfig::binarySensorConfigPayload(String suffix, String deviceClass) {
+  String name = config.get(C_NAME)->getValue();
+  String statTopic = "binary_sensor/{sensorId}_{suffix}/state";
+  statTopic.replace("{suffix}", suffix);
+
+  StaticJsonDocument<512> json;
+  json["dev"]["identifiers"] = sensorId;
+  json["dev"]["model"] = config.get(C_MODL)->getValue();
+  json["dev"]["name"] = name;
+  json["dev_cla"] = deviceClass;
+  json["name"] = name + " " + suffix;
+  json["stat_t"] = getPrefixedTopic(statTopic);
+  json["uniq_id"] = sensorId + "_" + suffix;
+
+  String jsonStr;
+  serializeJson(json, jsonStr);
+  return jsonStr;
+}
+
+String WifiConfig::switchConfigPayload(String suffix) {
+  String name = config.get(C_NAME)->getValue();
+  String cmdTopic = "switch/{sensorId}_{suffix}/cmd";
+  cmdTopic.replace("{suffix}", suffix);
+  String statTopic = "switch/{sensorId}_{suffix}/state";
+  statTopic.replace("{suffix}", suffix);
+
+  StaticJsonDocument<512> json;
+  json["dev"]["identifiers"] = sensorId;
+  json["dev"]["model"] = config.get(C_MODL)->getValue();
+  json["dev"]["name"] = name;
+  json["dev_cla"] = "switch";
+  json["name"] = name + " " + suffix;
+  json["cmd_t"] = getPrefixedTopic(cmdTopic);
+  json["stat_t"] = getPrefixedTopic(statTopic);
+  json["uniq_id"] = sensorId + "_" + suffix;
+
+  String jsonStr;
+  serializeJson(json, jsonStr);
+  return jsonStr;
+}
+
+String WifiConfig::fanConfigPayload(String suffix, bool speed, bool oscillate, int maxSpeed) {
+  String name = config.get(C_NAME)->getValue();
+  String cmdTopic = "fan/{sensorId}_{suffix}/cmd/state";
+  cmdTopic.replace("{suffix}", suffix);
+  String statTopic = "fan/{sensorId}_{suffix}/status/state";
+  statTopic.replace("{suffix}", suffix);
+
+  StaticJsonDocument<768> json;
+  json["dev"]["identifiers"] = sensorId;
+  json["dev"]["model"] = config.get(C_MODL)->getValue();
+  json["dev"]["name"] = name;
+  json["name"] = name + " " + suffix;
+  json["spd_rng_max"] = maxSpeed;
+  json["cmd_t"] = getPrefixedTopic(cmdTopic);
+  json["stat_t"] = getPrefixedTopic(statTopic);
+  if (speed) {
+    String pctCmdTopic = "fan/{sensorId}_{suffix}/cmd/speed";
+    pctCmdTopic.replace("{suffix}", suffix);
+    String pctStatTopic = "fan/{sensorId}_{suffix}/status/speed";
+    pctStatTopic.replace("{suffix}", suffix);
+
+    json["pct_cmd_t"] = getPrefixedTopic(pctCmdTopic);
+    json["pct_stat_t"] = getPrefixedTopic(pctStatTopic);
+  }
+  if (oscillate) {
+    String oscCmdTopic = "fan/{sensorId}_{suffix}/cmd/oscillate";
+    oscCmdTopic.replace("{suffix}", suffix);
+    String oscStatTopic = "fan/{sensorId}_{suffix}/status/oscillate";
+    oscStatTopic.replace("{suffix}", suffix);
+
+    json["osc_cmd_t"] = getPrefixedTopic(oscCmdTopic);
+    json["osc_stat_t"] = getPrefixedTopic(oscStatTopic);
+  }
+  json["uniq_id"] = sensorId + "_" + suffix;
+
+  String jsonStr;
+  serializeJson(json, jsonStr);
+  return jsonStr;
 }
 
 void WifiConfig::checkWifiConnection() {

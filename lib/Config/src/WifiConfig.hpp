@@ -72,6 +72,27 @@ class WifiConfig {
     String getPrefixedTopic(String topic);
     SavedConfiguration getConfig();
     String getSensorId();
+    /**
+     * generates binary sensor config payload
+     * state topic: `binary_sensor/{sensorId}_{suffix}/state`
+     */
+    String binarySensorConfigPayload(String suffix, String deviceClass);
+    /**
+     * generates switch config payload
+     * cmd topic: `switch/{sensorId}_{suffix}/cmd`
+     * state topic: `switch/{sensorId}_{suffix}/state`
+     */
+    String switchConfigPayload(String suffix);
+    /**
+     * generates fan config payload
+     * cmd topic: `fan/{sensorId}_{suffix}/cmd/state`
+     * state topic: `fan/{sensorId}_{suffix}/status/state`
+     * speed cmd topic: `fan/{sensorId}_{suffix}/cmd/speed`
+     * speed state topic: `fan/{sensorId}_{suffix}/status/speed`
+     * oscillate cmd topic: `fan/{sensorId}_{suffix}/cmd/oscillate`
+     * oscillate state topic: `fan/{sensorId}_{suffix}/status/oscillate`
+     */
+    String fanConfigPayload(String suffix, bool speed = true, bool oscillate = true, int maxSpeed = 8);
   protected:
     void checkWifiConnection();
     void setupSensorId();
