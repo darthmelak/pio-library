@@ -134,11 +134,17 @@ void WifiConfig::publish(String topic, String payload, bool retain, bool prefix)
 }
 
 String WifiConfig::getPrefixedTopic(String topic = "") {
-  return mqttPrefix + topic;
+  String prefixed = mqttPrefix + topic;
+  prefixed.replace("{sensorId}", sensorId);
+  return prefixed;
 }
 
 SavedConfiguration WifiConfig::getConfig() {
   return config;
+}
+
+String WifiConfig::getSensorId() {
+  return sensorId;
 }
 
 void WifiConfig::checkWifiConnection() {
@@ -197,7 +203,7 @@ void WifiConfig::setupSensorId() {
     if (debug) Serial.printf("mDNS set to: %s\n", hostname.c_str());
   }
   if (runMQTT) {
-    mqttPrefix = config.get(C_MQ_PREF)->getValue() + "/" + sensorId;
+    mqttPrefix = config.get(C_MQ_PREF)->getValue();
   }
 }
 
@@ -217,10 +223,7 @@ void WifiConfig::setupMosquitto() {
 
     if (debug) Serial.printf("MQTT CB: %s: %s\n", topic, data.c_str());
 
-    StaticJsonDocument<MQTT_BUFFER_SIZE> json;
-    deserializeJson(json, data);
-
-    if (mqttProps.cb != NULL) mqttProps.cb(topic, json);
+    if (mqttProps.cb != NULL) mqttProps.cb(topic, data);
   });
 }
 

@@ -23,7 +23,7 @@
 
 typedef std::function<void(bool)> post_update_cb;
 typedef std::function<void()> mqtt_connect_cb;
-typedef std::function<void(String, JsonDocument&)> mqtt_cb;
+typedef std::function<void(String, String)> mqtt_cb;
 
 struct ConnectionStatus {
   unsigned long from = 0;
@@ -71,6 +71,7 @@ class WifiConfig {
     void publish(String topic, String payload, bool retain = false, bool prefix = true);
     String getPrefixedTopic(String topic);
     SavedConfiguration getConfig();
+    String getSensorId();
   protected:
     void checkWifiConnection();
     void setupSensorId();

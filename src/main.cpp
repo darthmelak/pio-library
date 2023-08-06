@@ -94,9 +94,9 @@ void setup() {
     "testbed/",
     MQTTConnectProps([]() {
       wifiConfig.subscribe("/cmd/led");
-    }, [](String topic, JsonDocument& json) {
+    }, [](String topic, String data) {
       if (topic == wifiConfig.getPrefixedTopic("/cmd/led")) {
-        int state = json.as<int>();
+        int state = data.toInt();
         config.getInt("light")->setValue(state);
       }
     })
