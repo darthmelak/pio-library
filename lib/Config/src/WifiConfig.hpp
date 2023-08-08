@@ -2,6 +2,11 @@
 #define WifiConfig_h
 
 #include <Arduino.h>
+#ifdef ESP8266
+#include <ESP8266WebServer.h>
+#else
+#include <WebServer.h>
+#endif
 #include <ArduinoJson.h>
 #include "Configurations.hpp"
 
@@ -19,6 +24,12 @@
 #endif
 #ifndef MQTT_RECONNECT_INTERVAL
 #define MQTT_RECONNECT_INTERVAL 10000
+#endif
+#ifndef AUTH_USER_DEFAULT
+#define AUTH_USER_DEFAULT "admin"
+#endif
+#ifndef AUTH_PASS_DEFAULT
+#define AUTH_PASS_DEFAULT "admin"
 #endif
 
 typedef std::function<void(bool)> post_update_cb;
@@ -51,6 +62,8 @@ class WifiConfig {
       String password,
       String name_default,
       String hostname_default,
+      String auth_user_default = AUTH_USER_DEFAULT,
+      String auth_pass_default = AUTH_PASS_DEFAULT,
       bool useOTA = true,
       bool runWebServer = true,
       bool debug = false
@@ -66,7 +79,7 @@ class WifiConfig {
     );
     void loop();
     bool isWifiConnected();
-    void registerConfigApi(Configuration& configuration, post_update_cb cb = NULL);
+    void registerConfigApi(Configuration& configuration, post_update_cb cb = NULL, bool isPublic = true);
     bool subscribe(String topic, bool prefix = true);
     void publish(String topic, String payload, bool retain = false, bool prefix = true);
     String getPrefixedTopic(String topic);
@@ -98,6 +111,12 @@ class WifiConfig {
      * oscillate state topic: `fan/{sensorId}_{suffix}/status/oscillate`
      */
     String fanConfigPayload(String suffix, bool speed = true, bool oscillate = true, int maxSpeed = 8);
+
+    #ifdef ESP8266
+    ESP8266WebServer* getServer();
+    #else
+    WebServer* getServer();
+    #endif
   protected:
     void checkWifiConnection();
     void setupSensorId();

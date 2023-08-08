@@ -11,7 +11,7 @@ bool debug = true;
 bool echoCount = false;
 
 Configuration config("/test", debug);
-WifiConfig wifiConfig(WIFI_SSID, WIFI_PASSWORD, "Testbed", "testbed", true, true, debug);
+WifiConfig wifiConfig(WIFI_SSID, WIFI_PASSWORD, "Testbed", "testbed", AUTH_USER, AUTH_PASS, true, true, debug);
 #ifdef ESP8266
 int yellow = D7;
 int red = D6;
@@ -130,5 +130,14 @@ void serialCb(String buffer) {
     String response;
     serializeJson(json, response);
     Serial.println(response);
+  }
+  if (buffer == "reset") {
+    Serial.println("Resetting config");
+    SavedConfiguration wconf = wifiConfig.getConfig();
+    wconf.get("ssid")->setValue(WIFI_SSID);
+    wconf.get("password")->setValue(WIFI_PASSWORD);
+    wconf.get("auth_user")->setValue(AUTH_USER);
+    wconf.get("auth_pass")->setValue(AUTH_PASS);
+    ESP.restart();
   }
 }

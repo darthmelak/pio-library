@@ -88,6 +88,14 @@ bool Configuration::fromJson(JsonDocument& json) {
   return changed;
 }
 
+String Configuration::getStrVal(String name) const {
+  StringConfig *item = get(name);
+  if (item != NULL) {
+    return item->getValue();
+  }
+  return "";
+}
+
 SavedConfiguration::SavedConfiguration(String path, bool debug): Configuration(path, debug), size(0) {}
 
 void SavedConfiguration::setup() {
@@ -180,6 +188,14 @@ bool SavedConfiguration::fromJson(JsonDocument& json) {
     item = item->getNext();
   }
   return changed;
+}
+
+String SavedConfiguration::getStrVal(String name) const {
+  SavedStringConfig *item = get(name);
+  if (item != NULL) {
+    return item->getValue();
+  }
+  return "";
 }
 
 void SavedConfiguration::chain(SavedStringConfig *config) {

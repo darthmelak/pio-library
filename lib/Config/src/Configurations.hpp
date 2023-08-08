@@ -23,6 +23,7 @@ class Configuration {
     StringConfig *getFirst() const;
     virtual void toJson(JsonDocument& json) const;
     virtual bool fromJson(JsonDocument& json);
+    virtual String getStrVal(String name) const;
   protected:
     String path;
     bool debug;
@@ -43,6 +44,7 @@ class SavedConfiguration: public Configuration {
     SavedStringConfig *getFirst() const;
     void toJson(JsonDocument& json) const;
     bool fromJson(JsonDocument& json);
+    String getStrVal(String name) const;
   protected:
     int size;
     SavedStringConfig *first;

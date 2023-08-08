@@ -1,9 +1,7 @@
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
 #else
 #include <WiFi.h>
-#include <WebServer.h>
 #endif
 #include <ArduinoOTA.h>
 #include <WiFiClient.h>
@@ -15,6 +13,8 @@
 #define C_NAME "name"
 #define C_HNAM "hostname"
 #define C_MODL "model"
+#define C_AUTH_USER "auth_user"
+#define C_AUTH_PASS "auth_pass"
 #define C_MQ_SERV "mqtt_server"
 #define C_MQ_PORT "mqtt_port"
 #define C_MQ_USER "mqtt_user"
@@ -28,6 +28,7 @@ ESP8266WebServer server;
 #define MODEL_DEFAULT "ESP32"
 WebServer server;
 #endif
+
 WiFiClient wifiClient;
 PubSubClient mqtt(wifiClient);
 char mqttServer[64];
@@ -37,6 +38,8 @@ WifiConfig::WifiConfig(
   String password,
   String name_default,
   String hostname_default,
+  String auth_user_default,
+  String auth_pass_default,
   bool useOTA,
   bool runWebServer,
   bool debug
@@ -53,6 +56,8 @@ WifiConfig::WifiConfig(
     .add(C_PASS, password)
     .add(C_NAME, name_default)
     .add(C_HNAM, hostname_default)
+    .add(C_AUTH_USER, auth_user_default)
+    .add(C_AUTH_PASS, auth_pass_default)
     .add(C_MODL, MODEL_DEFAULT);
 }
 
@@ -95,9 +100,16 @@ bool WifiConfig::isWifiConnected() {
   return WiFi.status() == WL_CONNECTED;
 }
 
-void WifiConfig::registerConfigApi(Configuration& configuration, post_update_cb cb) {
+void WifiConfig::registerConfigApi(Configuration& configuration, post_update_cb cb, bool isPublic) {
 
-  server.on(configuration.getPath(), HTTP_GET, [this, &configuration]() {
+  server.on(configuration.getPath(), HTTP_GET, [this, isPublic, &configuration]() {
+    if (!isPublic) {
+      if (debug) Serial.printf("Auth: %s:%s\n", configuration.getStrVal(C_AUTH_USER).c_str(), configuration.getStrVal(C_AUTH_PASS).c_str());
+      if (!server.authenticate(configuration.getStrVal(C_AUTH_USER).c_str(), configuration.getStrVal(C_AUTH_PASS).c_str())) {
+        return server.requestAuthentication(BASIC_AUTH);
+      }
+    }
+
     if (debug) Serial.printf("GET %s\n", configuration.getPath().c_str());
 
     StaticJsonDocument<CONFIG_JSON_SIZE> json;
@@ -105,7 +117,14 @@ void WifiConfig::registerConfigApi(Configuration& configuration, post_update_cb 
     respondJson(json);
   });
 
-  server.on(configuration.getPath(), HTTP_POST, [this, &configuration, cb]() {
+  server.on(configuration.getPath(), HTTP_POST, [this, isPublic, &configuration, cb]() {
+    if (!isPublic) {
+      if (debug) Serial.printf("Auth: %s:%s\n", configuration.getStrVal(C_AUTH_USER).c_str(), configuration.getStrVal(C_AUTH_PASS).c_str());
+      if (!server.authenticate(configuration.getStrVal(C_AUTH_USER).c_str(), configuration.getStrVal(C_AUTH_PASS).c_str())) {
+        return server.requestAuthentication(BASIC_AUTH);
+      }
+    }
+
     if (server.hasArg("plain") == false) return;
     if (debug) Serial.printf("POST %s\n", configuration.getPath().c_str());
 
@@ -253,6 +272,17 @@ String WifiConfig::fanConfigPayload(String suffix, bool speed, bool oscillate, i
   return jsonStr;
 }
 
+
+#ifdef ESP8266
+ESP8266WebServer* WifiConfig::getServer() {
+  return &server;
+}
+#else
+WebServer* WifiConfig::getServer() {
+  return &server;
+}
+#endif
+
 void WifiConfig::checkWifiConnection() {
   if (WiFi.status() == WL_CONNECTED && !wifiStatus.connecting) return;
 
@@ -316,7 +346,7 @@ void WifiConfig::setupSensorId() {
 void WifiConfig::setupWebServer() {
   registerConfigApi(config, [this](bool changed) {
     if (debug) Serial.printf("Wifi-config: %s\n", changed ? "saved" : "not changed");
-  });
+  }, false);
 }
 
 void WifiConfig::setupMosquitto() {
