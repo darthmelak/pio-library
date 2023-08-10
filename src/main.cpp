@@ -37,19 +37,13 @@ void setup() {
   }
 
   config
-    .add("ssid", WIFI_SSID)
-    .add("password", WIFI_PASSWORD)
-    .add("name", "Testbed")
-    .add("hostname", "testbed", [](String value) {
-      Serial.printf("Hostname test changed to: %s\n", value.c_str());
-    })
     .add("counter", 0, [](int value) {
       wifiConfig.publish("/state/counter", String(value));
     })
     .add("light", 0, [](int value) {
       Serial.printf("Red changed to: %d\n", value);
       analogWrite(red, value);
-      wifiConfig.publish("/state/led", String(value));
+      wifiConfig.publish("state/led", String(value));
     })
   ;
 

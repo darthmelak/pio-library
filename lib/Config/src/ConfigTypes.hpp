@@ -2,11 +2,7 @@
 #define ConfigTypes_h
 
 #include <Arduino.h>
-#ifdef ESP8266
-  #include <EEPROM.h>
-#else
-  #include <Preferences.h>
-#endif
+#include <EEPROM.h>
 
 #define CONF_T_STR "str"
 #define CONF_T_INT "int"
@@ -56,9 +52,6 @@ class SavedStringConfig {
     virtual String getValue() const;
     int getLength() const;
     virtual const char *getType() const;
-    #ifdef ESP32
-    static void setPreferences(Preferences *prefs);
-    #endif
   private:
     String name;
     SavedStringConfig *next;
@@ -68,7 +61,6 @@ class SavedStringConfig {
     int length;
     str_update_cb cb;
     #ifdef ESP32
-    static Preferences *prefs;
     #endif
 };
 

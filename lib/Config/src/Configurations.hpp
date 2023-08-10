@@ -1,11 +1,6 @@
 #ifndef Configuration_h
 #define Configuration_h
 
-#ifdef ESP8266
-  #include <EEPROM.h>
-#else
-  #include <Preferences.h>
-#endif
 #include <ArduinoJson.h>
 #include "ConfigTypes.hpp"
 
@@ -50,9 +45,6 @@ class SavedConfiguration: public Configuration {
     SavedStringConfig *first;
     SavedStringConfig *last;
     void chain(SavedStringConfig *config);
-    #ifdef ESP32
-    Preferences preferences;
-    #endif
 };
 
 #endif

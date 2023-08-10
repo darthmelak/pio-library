@@ -96,14 +96,10 @@ String Configuration::getStrVal(String name) const {
   return "";
 }
 
-SavedConfiguration::SavedConfiguration(String path, bool debug): Configuration(path, debug), size(0) {}
+SavedConfiguration::SavedConfiguration(String path, bool debug): Configuration(path, debug), size(0), first(NULL), last(NULL) {}
 
 void SavedConfiguration::setup() {
-  #ifdef ESP8266
-    EEPROM.begin(size+32);
-  #else
-    preferences.begin(PREFS_NAMESPACE);
-  #endif
+  EEPROM.begin(size+32);
   SavedStringConfig *current = first;
   while (current != NULL) {
     current->setup();
