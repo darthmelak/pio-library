@@ -4,14 +4,10 @@
 #include <OneButton.h>
 #include "Configurations.hpp"
 #include "WifiConfig.hpp"
+#include "HAswitchHelper.hpp"
 #include "SerialHandler.hpp"
 #include "secrets.h"
 
-bool debug = true;
-bool echoCount = false;
-
-Configuration config("/test", debug);
-WifiConfig wifiConfig(WIFI_SSID, WIFI_PASSWORD, "Testbed", "testbed", AUTH_USER, AUTH_PASS, true, true, debug);
 #ifdef ESP8266
 int yellow = D7;
 int red = D6;
@@ -25,6 +21,13 @@ int green = 5;
 int white = 4;
 int button = 3;
 #endif
+
+bool debug = true;
+bool echoCount = false;
+
+Configuration config("/test", debug);
+WifiConfig wifiConfig(WIFI_SSID, WIFI_PASSWORD, "Testbed", "testbed", AUTH_USER, AUTH_PASS, true, true, debug);
+HAswitchHelper sw_1(wifiConfig, "whiteled", white, false, debug);
 Timer<2> timer;
 OneButton btn(button);
 
@@ -38,7 +41,7 @@ void setup() {
 
   config
     .add("counter", 0, [](int value) {
-      wifiConfig.publish("/state/counter", String(value));
+      // wifiConfig.publish("state/counter", String(value));
     })
     .add("light", 0, [](int value) {
       Serial.printf("Red changed to: %d\n", value);
@@ -68,8 +71,6 @@ void setup() {
   digitalWrite(red, LOW);
   pinMode(green, OUTPUT);
   digitalWrite(green, LOW);
-  pinMode(white, OUTPUT);
-  digitalWrite(white, LOW);
   pinMode(button, INPUT_PULLUP);
   timer.every(1000, [](void*) -> bool {
     digitalWrite(green, !digitalRead(green));
@@ -85,16 +86,19 @@ void setup() {
     1883,
     MQTT_USER,
     MQTT_PASS,
-    "testbed/",
+    "homeassistant/",
     MQTTConnectProps([]() {
-      wifiConfig.subscribe("/cmd/led");
+      // wifiConfig.subscribe("/cmd/led");
+      sw_1.onMqttConnect();
     }, [](String topic, String data) {
-      if (topic == wifiConfig.getPrefixedTopic("/cmd/led")) {
-        int state = data.toInt();
-        config.getInt("light")->setValue(state);
-      }
+      // if (topic == wifiConfig.getPrefixedTopic("/cmd/led")) {
+      //   int state = data.toInt();
+      //   config.getInt("light")->setValue(state);
+      // }
+      sw_1.onMqttMessage(topic, data);
     })
   );
+  sw_1.begin();
 }
 
 void loop() {

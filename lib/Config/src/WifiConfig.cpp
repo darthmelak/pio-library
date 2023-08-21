@@ -140,7 +140,7 @@ void WifiConfig::registerConfigApi(Configuration& configuration, post_update_cb 
   });
 }
 
-bool WifiConfig::subscribe(String topic, bool prefix) {
+bool WifiConfig::subscribe(const String& topic, bool prefix) {
   if (!runMQTT || !mqtt.connected()) return false;
 
   String fullTopic = prefix ? getPrefixedTopic(topic) : topic;
@@ -148,7 +148,7 @@ bool WifiConfig::subscribe(String topic, bool prefix) {
   return mqtt.subscribe(fullTopic.c_str());
 }
 
-void WifiConfig::publish(String topic, String payload, bool retain, bool prefix) {
+void WifiConfig::publish(const String& topic, const String& payload, bool retain, bool prefix) {
   if (!runMQTT || !mqtt.connected()) return;
 
   String fullTopic = prefix ? getPrefixedTopic(topic) : topic;
@@ -156,10 +156,17 @@ void WifiConfig::publish(String topic, String payload, bool retain, bool prefix)
   mqtt.publish(fullTopic.c_str(), payload.c_str(), retain);
 }
 
-String WifiConfig::getPrefixedTopic(String topic = "") {
-  String prefixed = mqttPrefix + topic;
+String WifiConfig::getPrefixedTopic(const String& topic) {
+  String prefixed = mqttPrefix;
+  prefixed += topic;
   prefixed.replace("{sensorId}", sensorId);
   return prefixed;
+}
+
+void WifiConfig::getPrefixedTopic(String& prefixedTopic, const String& topic) {
+  prefixedTopic = mqttPrefix;
+  prefixedTopic += topic;
+  prefixedTopic.replace("{sensorId}", sensorId);
 }
 
 SavedConfiguration WifiConfig::getConfig() {
@@ -210,12 +217,22 @@ String WifiConfig::sensorConfigPayload(String suffix, String deviceClass, String
   return jsonStr;
 }
 
-String WifiConfig::switchConfigPayload(String suffix) {
+String WifiConfig::switchConfigPayload(const String& suffix) {
+  String cmdTopic;
+  String stateTopic;
+  return switchConfigPayload(suffix, cmdTopic, stateTopic);
+}
+
+String WifiConfig::switchConfigPayload(const String& suffix, String& cmdTopic, String& statTopic) {
   String name = config.get(C_NAME)->getValue();
-  String cmdTopic = "switch/{sensorId}_{suffix}/cmd";
-  cmdTopic.replace("{suffix}", suffix);
-  String statTopic = "switch/{sensorId}_{suffix}/state";
-  statTopic.replace("{suffix}", suffix);
+  if (cmdTopic.length() == 0) {
+    getPrefixedTopic(cmdTopic, "switch/{sensorId}_{suffix}/cmd");
+    cmdTopic.replace("{suffix}", suffix);
+  }
+  if (statTopic.length() == 0) {
+    getPrefixedTopic(statTopic, "switch/{sensorId}_{suffix}/state");
+    statTopic.replace("{suffix}", suffix);
+  }
 
   StaticJsonDocument<512> json;
   json["dev"]["identifiers"] = sensorId;
@@ -223,8 +240,8 @@ String WifiConfig::switchConfigPayload(String suffix) {
   json["dev"]["name"] = name;
   json["dev_cla"] = "switch";
   json["name"] = name + " " + suffix;
-  json["cmd_t"] = getPrefixedTopic(cmdTopic);
-  json["stat_t"] = getPrefixedTopic(statTopic);
+  json["cmd_t"] = cmdTopic;
+  json["stat_t"] = statTopic;
   json["uniq_id"] = sensorId + "_" + suffix;
 
   String jsonStr;
@@ -272,6 +289,32 @@ String WifiConfig::fanConfigPayload(String suffix, bool speed, bool oscillate, i
   return jsonStr;
 }
 
+String WifiConfig::lightConfigPayload(String suffix) {
+  String name = config.get(C_NAME)->getValue();
+  String cmdTopic = "light/{sensorId}_{suffix}/cmd/state";
+  cmdTopic.replace("{suffix}", suffix);
+  String statTopic = "light/{sensorId}_{suffix}/status/state";
+  statTopic.replace("{suffix}", suffix);
+  String briCmdTopic = "light/{sensorId}_{suffix}/cmd/brightness";
+  briCmdTopic.replace("{suffix}", suffix);
+  String briStatTopic = "light/{sensorId}_{suffix}/status/brightness";
+  briStatTopic.replace("{suffix}", suffix);
+
+  StaticJsonDocument<512> json;
+  json["dev"]["identifiers"] = sensorId;
+  json["dev"]["model"] = config.get(C_MODL)->getValue();
+  json["dev"]["name"] = name;
+  json["name"] = name + " " + suffix;
+  json["cmd_t"] = getPrefixedTopic(cmdTopic);
+  json["stat_t"] = getPrefixedTopic(statTopic);
+  json["bri_cmd_t"] = getPrefixedTopic(briCmdTopic);
+  json["bri_stat_t"] = getPrefixedTopic(briStatTopic);
+  json["uniq_id"] = sensorId + "_" + suffix;
+
+  String jsonStr;
+  serializeJson(json, jsonStr);
+  return jsonStr;
+}
 
 #ifdef ESP8266
 ESP8266WebServer* WifiConfig::getServer() {
@@ -346,6 +389,9 @@ void WifiConfig::setupSensorId() {
 void WifiConfig::setupWebServer() {
   registerConfigApi(config, [this](bool changed) {
     if (debug) Serial.printf("Wifi-config: %s\n", changed ? "saved" : "not changed");
+    if (changed) {
+      ESP.reset();
+    }
   }, false);
 }
 

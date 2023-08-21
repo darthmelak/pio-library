@@ -80,9 +80,10 @@ class WifiConfig {
     void loop();
     bool isWifiConnected();
     void registerConfigApi(Configuration& configuration, post_update_cb cb = NULL, bool isPublic = true);
-    bool subscribe(String topic, bool prefix = true);
-    void publish(String topic, String payload, bool retain = false, bool prefix = true);
-    String getPrefixedTopic(String topic);
+    bool subscribe(const String& topic, bool prefix = true);
+    void publish(const String& topic, const String& payload, bool retain = false, bool prefix = true);
+    String getPrefixedTopic(const String& topic);
+    void getPrefixedTopic(String& prefixedTopic, const String& topic);
     SavedConfiguration getConfig();
     String getSensorId();
     /**
@@ -100,7 +101,8 @@ class WifiConfig {
      * cmd topic: `switch/{sensorId}_{suffix}/cmd`
      * state topic: `switch/{sensorId}_{suffix}/state`
      */
-    String switchConfigPayload(String suffix);
+    String switchConfigPayload(const String& suffix);
+    String switchConfigPayload(const String& suffix, String& cmdTopic, String& statTopic);
     /**
      * generates fan config payload
      * cmd topic: `fan/{sensorId}_{suffix}/cmd/state`
@@ -111,6 +113,15 @@ class WifiConfig {
      * oscillate state topic: `fan/{sensorId}_{suffix}/status/oscillate`
      */
     String fanConfigPayload(String suffix, bool speed = true, bool oscillate = true, int maxSpeed = 8);
+
+    /**
+     * generates light config payload (brightness, on/off)
+     * cmd topic: `light/{sensorId}_{suffix}/cmd/state`
+     * state topic: `light/{sensorId}_{suffix}/status/state`
+     * brightness cmd topic: `light/{sensorId}_{suffix}/cmd/brightness`
+     * brightness state topic: `light/{sensorId}_{suffix}/status/brightness`
+     */
+    String lightConfigPayload(String suffix);
 
     #ifdef ESP8266
     ESP8266WebServer* getServer();

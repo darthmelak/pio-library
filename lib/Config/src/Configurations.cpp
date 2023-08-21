@@ -1,26 +1,32 @@
 #include "Configurations.hpp"
 
-Configuration::Configuration(String path, bool debug): path(path), debug(debug), first(NULL), last(NULL) {}
+Configuration::Configuration(bool debug): debug(debug), first(NULL), last(NULL) {}
+
+Configuration::Configuration(const char* path, bool debug): path(path), debug(debug), first(NULL), last(NULL) {}
+
+void Configuration::setPath(const char* path) {
+  this->path = path;
+}
 
 String Configuration::getPath() const {
   return path;
 }
 
-Configuration& Configuration::add(String name, String defaultValue, str_update_cb cb) {
+Configuration& Configuration::add(const String& name, String defaultValue, str_update_cb cb) {
   StringConfig *config = new StringConfig(name, defaultValue, cb);
   chain(config);
 
   return *this;
 }
 
-Configuration& Configuration::add(String name, int defaultValue, int_update_cb cb) {
+Configuration& Configuration::add(const String& name, int defaultValue, int_update_cb cb) {
   IntConfig *config = new IntConfig(name, defaultValue, cb);
   chain(config);
 
   return *this;
 }
 
-StringConfig *Configuration::get(String name) const {
+StringConfig *Configuration::get(const String& name) const {
   StringConfig *current = first;
   while (current != NULL) {
     if (current->getName() == name) {
@@ -31,7 +37,7 @@ StringConfig *Configuration::get(String name) const {
   return NULL;
 }
 
-IntConfig *Configuration::getInt(String name) const {
+IntConfig *Configuration::getInt(const String& name) const {
   StringConfig *current = first;
   while (current != NULL) {
     if (current->getName() == name) {
@@ -88,7 +94,7 @@ bool Configuration::fromJson(JsonDocument& json) {
   return changed;
 }
 
-String Configuration::getStrVal(String name) const {
+String Configuration::getStrVal(const String& name) const {
   StringConfig *item = get(name);
   if (item != NULL) {
     return item->getValue();
@@ -96,7 +102,7 @@ String Configuration::getStrVal(String name) const {
   return "";
 }
 
-SavedConfiguration::SavedConfiguration(String path, bool debug): Configuration(path, debug), size(0), first(NULL), last(NULL) {}
+SavedConfiguration::SavedConfiguration(const char* path, bool debug): Configuration(path, debug), size(0), first(NULL), last(NULL) {}
 
 void SavedConfiguration::setup() {
   EEPROM.begin(size+32);
@@ -112,7 +118,7 @@ int SavedConfiguration::getSize() const {
   return size;
 }
 
-SavedConfiguration& SavedConfiguration::add(String name, String defaultValue, str_update_cb cb, int length) {
+SavedConfiguration& SavedConfiguration::add(const String& name, String defaultValue, str_update_cb cb, int length) {
   SavedStringConfig *config = new SavedStringConfig(name, defaultValue, cb, size, length);
   size += config->getLength();
   chain(config);
@@ -120,7 +126,7 @@ SavedConfiguration& SavedConfiguration::add(String name, String defaultValue, st
   return *this;
 }
 
-SavedConfiguration& SavedConfiguration::add(String name, int defaultValue, int_update_cb cb) {
+SavedConfiguration& SavedConfiguration::add(const String& name, int defaultValue, int_update_cb cb) {
   SavedIntConfig *config = new SavedIntConfig(name, defaultValue, cb, size);
   size += config->getLength();
   chain(config);
@@ -128,7 +134,7 @@ SavedConfiguration& SavedConfiguration::add(String name, int defaultValue, int_u
   return *this;
 }
 
-SavedStringConfig *SavedConfiguration::get(String name) const {
+SavedStringConfig *SavedConfiguration::get(const String& name) const {
   SavedStringConfig *current = first;
   while (current != NULL) {
     if (current->getName() == name) {
@@ -139,7 +145,7 @@ SavedStringConfig *SavedConfiguration::get(String name) const {
   return NULL;
 }
 
-SavedIntConfig *SavedConfiguration::getInt(String name) const {
+SavedIntConfig *SavedConfiguration::getInt(const String& name) const {
   SavedStringConfig *current = first;
   while (current != NULL) {
     if (current->getName() == name) {
@@ -186,7 +192,7 @@ bool SavedConfiguration::fromJson(JsonDocument& json) {
   return changed;
 }
 
-String SavedConfiguration::getStrVal(String name) const {
+String SavedConfiguration::getStrVal(const String& name) const {
   SavedStringConfig *item = get(name);
   if (item != NULL) {
     return item->getValue();
