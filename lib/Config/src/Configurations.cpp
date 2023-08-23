@@ -104,7 +104,7 @@ String Configuration::getStrVal(const String& name) const {
 
 SavedConfiguration::SavedConfiguration(const char* path, bool debug): Configuration(path, debug), size(0), first(NULL), last(NULL) {}
 
-void SavedConfiguration::setup() {
+void SavedConfiguration::begin() {
   EEPROM.begin(size+32);
   SavedStringConfig *current = first;
   while (current != NULL) {

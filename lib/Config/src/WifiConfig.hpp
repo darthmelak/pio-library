@@ -68,13 +68,13 @@ class WifiConfig {
       bool runWebServer = true,
       bool debug = false
     );
-    void setup();
-    void setupMQTT(
+    void begin();
+    void beginMQTT(
       String mqtt_server_default = "test.mosquitto.org",
       int mqtt_port_default = 1883,
       String mqtt_user_default = "test",
       String mqtt_password_default = "pass",
-      String mqtt_prefix_default = "/homeassistant/test",
+      String mqtt_prefix_default = "homeassistant/",
       MQTTConnectProps props = MQTTConnectProps()
     );
     void loop();
@@ -121,7 +121,8 @@ class WifiConfig {
      * brightness cmd topic: `light/{sensorId}_{suffix}/cmd/brightness`
      * brightness state topic: `light/{sensorId}_{suffix}/status/brightness`
      */
-    String lightConfigPayload(String suffix);
+    String lightConfigPayload(const String& suffix);
+    String lightConfigPayload(const String& suffix, String& cmdTopic, String& statTopic, String& levelCmdTopic, String& levelStatTopic);
 
     #ifdef ESP8266
     ESP8266WebServer* getServer();

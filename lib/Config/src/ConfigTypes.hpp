@@ -20,6 +20,7 @@ class StringConfig {
     virtual bool setValue(String value);
     virtual String getValue() const;
     virtual const char *getType() const;
+    void setCb(str_update_cb cb);
   private:
     String name;
     StringConfig *next;
@@ -35,6 +36,7 @@ class IntConfig: public StringConfig {
     String getValue() const;
     int getIntVal() const;
     const char *getType() const;
+    void setCb(int_update_cb cb);
   protected:
     int value;
     int_update_cb cb;
@@ -52,6 +54,7 @@ class SavedStringConfig {
     virtual String getValue() const;
     int getLength() const;
     virtual const char *getType() const;
+    void setCb(str_update_cb cb);
   private:
     String name;
     SavedStringConfig *next;
@@ -72,6 +75,7 @@ class SavedIntConfig: public SavedStringConfig {
     String getValue() const;
     int getIntVal() const;
     const char *getType() const;
+    void setCb(int_update_cb cb);
   protected:
     int value;
     int_update_cb cb;

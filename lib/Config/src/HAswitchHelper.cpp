@@ -11,18 +11,16 @@ void HAswitchHelper::begin() {
   pinMode(pin, OUTPUT);
   digitalWrite(pin, invertState ? HIGH : LOW);
 
-  wifiConfig.getPrefixedTopic(cmdTopic, "switch/{sensorId}_{suffix}/cmd");
+  wifiConfig.getPrefixedTopic(cmdTopic, "switch/{sensorId}_{suffix}/cmd/state");
   cmdTopic.replace("{suffix}", suffix);
-  wifiConfig.getPrefixedTopic(stateTopic, "switch/{sensorId}_{suffix}/state");
+  wifiConfig.getPrefixedTopic(stateTopic, "switch/{sensorId}_{suffix}/status/state");
   stateTopic.replace("{suffix}", suffix);
 
-  config
-    .add("state", LOW, [this](int value) {
-      digitalWrite(pin, invertState ? !value : value);
-      String state = value ? "ON" : "OFF";
-      wifiConfig.publish(stateTopic, state, true, false);
-    })
-  ;
+  config.add("state", LOW, [this](int value) {
+    digitalWrite(pin, invertState ? !value : value);
+    String state = value ? "ON" : "OFF";
+    wifiConfig.publish(stateTopic, state, true, false);
+  });
 }
 
 Configuration& HAswitchHelper::getConfig() {

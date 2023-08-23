@@ -33,7 +33,7 @@ class SavedConfiguration: public Configuration {
   public:
     SavedConfiguration(bool debug = false);
     SavedConfiguration(const char* path, bool debug = false);
-    void setup();
+    void begin();
     int getSize() const;
     SavedConfiguration& add(const String& name, String defaultValue, str_update_cb cb = NULL, int length = 64);
     SavedConfiguration& add(const String& name, int defaultValue, int_update_cb cb = NULL);

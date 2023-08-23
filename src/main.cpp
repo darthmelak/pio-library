@@ -5,6 +5,7 @@
 #include "Configurations.hpp"
 #include "WifiConfig.hpp"
 #include "HAswitchHelper.hpp"
+#include "HAlightHelper.hpp"
 #include "SerialHandler.hpp"
 #include "secrets.h"
 
@@ -28,6 +29,7 @@ bool echoCount = false;
 Configuration config("/test", debug);
 WifiConfig wifiConfig(WIFI_SSID, WIFI_PASSWORD, "Testbed", "testbed", AUTH_USER, AUTH_PASS, true, true, debug);
 HAswitchHelper sw_1(wifiConfig, "whiteled", white, false, debug);
+HAlightHelper light_1(wifiConfig, "redled", red, 255, false, debug);
 Timer<2> timer;
 OneButton btn(button);
 
@@ -38,6 +40,8 @@ void setup() {
     Serial.begin(115200);
     delay(10);
   }
+
+  analogWriteFreq(4000);
 
   config
     .add("counter", 0, [](int value) {
@@ -67,11 +71,8 @@ void setup() {
 
   pinMode(yellow, OUTPUT);
   digitalWrite(yellow, LOW);
-  pinMode(red, OUTPUT);
-  digitalWrite(red, LOW);
   pinMode(green, OUTPUT);
   digitalWrite(green, LOW);
-  pinMode(button, INPUT_PULLUP);
   timer.every(1000, [](void*) -> bool {
     digitalWrite(green, !digitalRead(green));
     IntConfig *counter = config.getInt("counter");
@@ -81,7 +82,7 @@ void setup() {
   });
   // config.setup();
 
-  wifiConfig.setupMQTT(
+  wifiConfig.beginMQTT(
     MQTT_SERVER,
     1883,
     MQTT_USER,
@@ -90,15 +91,18 @@ void setup() {
     MQTTConnectProps([]() {
       // wifiConfig.subscribe("/cmd/led");
       sw_1.onMqttConnect();
+      light_1.onMqttConnect();
     }, [](String topic, String data) {
       // if (topic == wifiConfig.getPrefixedTopic("/cmd/led")) {
       //   int state = data.toInt();
       //   config.getInt("light")->setValue(state);
       // }
       sw_1.onMqttMessage(topic, data);
+      light_1.onMqttMessage(topic, data);
     })
   );
   sw_1.begin();
+  light_1.begin();
 }
 
 void loop() {

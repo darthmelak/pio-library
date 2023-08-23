@@ -1,5 +1,5 @@
-#ifndef MqttHAHelpers_h
-#define MqttHAHelpers_h
+#ifndef HAswitchHelper_h
+#define HAswitchHelper_h
 
 #include "WifiConfig.hpp"
 

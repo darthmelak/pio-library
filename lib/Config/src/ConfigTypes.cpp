@@ -31,6 +31,10 @@ const char *StringConfig::getType() const {
   return CONF_T_STR;
 }
 
+void StringConfig::setCb(str_update_cb cb) {
+  this->cb = cb;
+}
+
 /* --== IntConfig ==-- */
 IntConfig::IntConfig(String name, int defaultValue, int_update_cb cb): StringConfig(name, String(defaultValue)), value(defaultValue), cb(cb) {}
 
@@ -52,6 +56,10 @@ int IntConfig::getIntVal() const {
 
 const char *IntConfig::getType() const {
   return CONF_T_INT;
+}
+
+void IntConfig::setCb(int_update_cb cb) {
+  this->cb = cb;
 }
 
 /* --== SavedStringConfig ==-- */
@@ -121,6 +129,10 @@ const char *SavedStringConfig::getType() const {
   return CONF_T_STR;
 }
 
+void SavedStringConfig::setCb(str_update_cb cb) {
+  this->cb = cb;
+}
+
 /* --== SavedIntConfig ==-- */
 SavedIntConfig::SavedIntConfig(
   String name,
@@ -162,4 +174,8 @@ int SavedIntConfig::getIntVal() const {
 
 const char *SavedIntConfig::getType() const {
   return CONF_T_INT;
+}
+
+void SavedIntConfig::setCb(int_update_cb cb) {
+  this->cb = cb;
 }

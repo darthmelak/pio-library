@@ -61,16 +61,16 @@ WifiConfig::WifiConfig(
     .add(C_MODL, MODEL_DEFAULT);
 }
 
-void WifiConfig::setup() {
+void WifiConfig::begin() {
   if (debug) Serial.println("\n\nWifiConfig init ...");
-  config.setup();
+  config.begin();
   setupSensorId();
   if (runWebServer) setupWebServer();
   if (runMQTT) setupMosquitto();
   WiFi.mode(WIFI_STA);
 }
 
-void WifiConfig::setupMQTT(
+void WifiConfig::beginMQTT(
   String mqtt_server_default,
   int mqtt_port_default,
   String mqtt_user_default,
@@ -86,7 +86,7 @@ void WifiConfig::setupMQTT(
     .add(C_MQ_PASS, mqtt_password_default)
     .add(C_MQ_PREF, mqtt_prefix_default);
   mqttProps = props;
-  setup();
+  begin();
 }
 
 void WifiConfig::loop() {
@@ -289,26 +289,42 @@ String WifiConfig::fanConfigPayload(String suffix, bool speed, bool oscillate, i
   return jsonStr;
 }
 
-String WifiConfig::lightConfigPayload(String suffix) {
+String WifiConfig::lightConfigPayload(const String& suffix) {
+  String cmdTopic;
+  String statTopic;
+  String levelCmdTopic;
+  String levelStatTopic;
+  return lightConfigPayload(suffix, cmdTopic, statTopic, levelCmdTopic, levelStatTopic);
+}
+
+String WifiConfig::lightConfigPayload(const String& suffix, String& cmdTopic, String& statTopic, String& levelCmdTopic, String& levelStatTopic) {
   String name = config.get(C_NAME)->getValue();
-  String cmdTopic = "light/{sensorId}_{suffix}/cmd/state";
-  cmdTopic.replace("{suffix}", suffix);
-  String statTopic = "light/{sensorId}_{suffix}/status/state";
-  statTopic.replace("{suffix}", suffix);
-  String briCmdTopic = "light/{sensorId}_{suffix}/cmd/brightness";
-  briCmdTopic.replace("{suffix}", suffix);
-  String briStatTopic = "light/{sensorId}_{suffix}/status/brightness";
-  briStatTopic.replace("{suffix}", suffix);
+  if (cmdTopic.length() == 0) {
+    getPrefixedTopic(cmdTopic, "light/{sensorId}_{suffix}/cmd/state");
+    cmdTopic.replace("{suffix}", suffix);
+  }
+  if (statTopic.length() == 0) {
+    getPrefixedTopic(statTopic, "light/{sensorId}_{suffix}/status/state");
+    statTopic.replace("{suffix}", suffix);
+  }
+  if (levelCmdTopic.length() == 0) {
+    getPrefixedTopic(levelCmdTopic, "light/{sensorId}_{suffix}/cmd/brightness");
+    levelCmdTopic.replace("{suffix}", suffix);
+  }
+  if (levelStatTopic.length() == 0) {
+    getPrefixedTopic(levelStatTopic, "light/{sensorId}_{suffix}/status/brightness");
+    levelStatTopic.replace("{suffix}", suffix);
+  }
 
   StaticJsonDocument<512> json;
   json["dev"]["identifiers"] = sensorId;
   json["dev"]["model"] = config.get(C_MODL)->getValue();
   json["dev"]["name"] = name;
   json["name"] = name + " " + suffix;
-  json["cmd_t"] = getPrefixedTopic(cmdTopic);
-  json["stat_t"] = getPrefixedTopic(statTopic);
-  json["bri_cmd_t"] = getPrefixedTopic(briCmdTopic);
-  json["bri_stat_t"] = getPrefixedTopic(briStatTopic);
+  json["cmd_t"] = cmdTopic;
+  json["stat_t"] = statTopic;
+  json["bri_cmd_t"] = levelCmdTopic;
+  json["bri_stat_t"] = levelStatTopic;
   json["uniq_id"] = sensorId + "_" + suffix;
 
   String jsonStr;
