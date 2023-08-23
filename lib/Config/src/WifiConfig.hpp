@@ -121,8 +121,8 @@ class WifiConfig {
      * brightness cmd topic: `light/{sensorId}_{suffix}/cmd/brightness`
      * brightness state topic: `light/{sensorId}_{suffix}/status/brightness`
      */
-    String lightConfigPayload(const String& suffix);
-    String lightConfigPayload(const String& suffix, String& cmdTopic, String& statTopic, String& levelCmdTopic, String& levelStatTopic);
+    String lightConfigPayload(const String& suffix, int maxlevel = 255);
+    String lightConfigPayload(const String& suffix, String& cmdTopic, String& statTopic, String& levelCmdTopic, String& levelStatTopic, int maxlevel = 255);
 
     #ifdef ESP8266
     ESP8266WebServer* getServer();

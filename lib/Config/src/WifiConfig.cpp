@@ -289,15 +289,15 @@ String WifiConfig::fanConfigPayload(String suffix, bool speed, bool oscillate, i
   return jsonStr;
 }
 
-String WifiConfig::lightConfigPayload(const String& suffix) {
+String WifiConfig::lightConfigPayload(const String& suffix, int maxlevel) {
   String cmdTopic;
   String statTopic;
   String levelCmdTopic;
   String levelStatTopic;
-  return lightConfigPayload(suffix, cmdTopic, statTopic, levelCmdTopic, levelStatTopic);
+  return lightConfigPayload(suffix, cmdTopic, statTopic, levelCmdTopic, levelStatTopic, maxlevel);
 }
 
-String WifiConfig::lightConfigPayload(const String& suffix, String& cmdTopic, String& statTopic, String& levelCmdTopic, String& levelStatTopic) {
+String WifiConfig::lightConfigPayload(const String& suffix, String& cmdTopic, String& statTopic, String& levelCmdTopic, String& levelStatTopic, int maxlevel) {
   String name = config.get(C_NAME)->getValue();
   if (cmdTopic.length() == 0) {
     getPrefixedTopic(cmdTopic, "light/{sensorId}_{suffix}/cmd/state");
@@ -321,6 +321,7 @@ String WifiConfig::lightConfigPayload(const String& suffix, String& cmdTopic, St
   json["dev"]["model"] = config.get(C_MODL)->getValue();
   json["dev"]["name"] = name;
   json["name"] = name + " " + suffix;
+  json["bri_scl"] = maxlevel;
   json["cmd_t"] = cmdTopic;
   json["stat_t"] = statTopic;
   json["bri_cmd_t"] = levelCmdTopic;

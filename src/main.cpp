@@ -28,8 +28,8 @@ bool echoCount = false;
 
 Configuration config("/test", debug);
 WifiConfig wifiConfig(WIFI_SSID, WIFI_PASSWORD, "Testbed", "testbed", AUTH_USER, AUTH_PASS, true, true, debug);
-HAswitchHelper sw_1(wifiConfig, "whiteled", white, false, debug);
-HAlightHelper light_1(wifiConfig, "redled", red, 255, false, debug);
+HAswitchHelper sw_1(wifiConfig, "whiteled", white, true, debug);
+HAlightHelper light_1(wifiConfig, "redled", red, 255, true, debug);
 Timer<2> timer;
 OneButton btn(button);
 
@@ -47,19 +47,26 @@ void setup() {
     .add("counter", 0, [](int value) {
       // wifiConfig.publish("state/counter", String(value));
     })
-    .add("light", 0, [](int value) {
-      Serial.printf("Red changed to: %d\n", value);
-      analogWrite(red, value);
-      wifiConfig.publish("state/led", String(value));
+    .add("green", 0, [](int value) {
+      Serial.printf("Green changed to: %d\n", value);
+      analogWrite(green, value);
     })
   ;
 
-  IntConfig *light = config.getInt("light");
-
-  btn.attachClick([](void *ctx) {
-    IntConfig *lght = (IntConfig *)ctx;
-    lght->setValue(lght->getIntVal() > 0 ? 0 : 255);
-  }, light);
+  btn.attachClick([]() {
+    IntConfig *state = light_1.getConfig().getInt("state");
+    IntConfig *level = light_1.getConfig().getInt("level");
+    if (state->getIntVal()) {
+      if (level->getIntVal() < 255) {
+        level->setValue(255);
+      } else {
+        state->setValue(0);
+      }
+    } else {
+      level->setValue(255);
+      state->setValue(1);
+    }
+  });
 
   wifiConfig.registerConfigApi(config, [](bool changed) {
     if (changed) {
@@ -73,14 +80,13 @@ void setup() {
   digitalWrite(yellow, LOW);
   pinMode(green, OUTPUT);
   digitalWrite(green, LOW);
-  timer.every(1000, [](void*) -> bool {
-    digitalWrite(green, !digitalRead(green));
-    IntConfig *counter = config.getInt("counter");
-    counter->setValue(counter->getIntVal() + 1);
-    if (debug && echoCount) Serial.println(counter->getValue());
-    return true;
-  });
-  // config.setup();
+  // timer.every(1000, [](void*) -> bool {
+  //   digitalWrite(green, !digitalRead(green));
+  //   IntConfig *counter = config.getInt("counter");
+  //   counter->setValue(counter->getIntVal() + 1);
+  //   if (debug && echoCount) Serial.println(counter->getValue());
+  //   return true;
+  // });
 
   wifiConfig.beginMQTT(
     MQTT_SERVER,

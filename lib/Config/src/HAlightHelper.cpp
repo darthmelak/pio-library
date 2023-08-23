@@ -18,19 +18,23 @@ void HAlightHelper::begin() {
 
   config
     .add("state", LOW, [this](int value) {
-      if (value == 0) {
-        level = 0;
-        analogWrite(pin, 0);
+      if (value == LOW) {
+        level = invertState ? maxLevel : 0;
       } else {
-        level = config.getInt("level")->getIntVal();
-        analogWrite(pin, level);
+        int lvl = config.getInt("level")->getIntVal();
+        level = invertState ? maxLevel - lvl : lvl;
       }
+      analogWrite(pin, level);
       String state = value ? "ON" : "OFF";
       wifiConfig.publish(stateTopic, state, true, false);
     })
     .add("level", 1, [this](int value) {
-      if (level > 0) {
-        level = value;
+      if (
+        invertState ?
+        level < maxLevel :
+        level > 0
+      ) {
+        level = invertState ? maxLevel - value : value;
         analogWrite(pin, level);
       }
       wifiConfig.publish(levelStateTopic, String(value), true, false);
@@ -43,7 +47,7 @@ void HAlightHelper::onMqttConnect() {
   wifiConfig.getPrefixedTopic(configTopic, "light/{sensorId}_{suffix}/config");
   configTopic.replace("{suffix}", suffix);
 
-  wifiConfig.publish(configTopic, wifiConfig.lightConfigPayload(suffix, cmdTopic, stateTopic, levelCmdTopic, levelStateTopic), true, false);
+  wifiConfig.publish(configTopic, wifiConfig.lightConfigPayload(suffix, cmdTopic, stateTopic, levelCmdTopic, levelStateTopic, maxLevel), true, false);
   wifiConfig.subscribe(cmdTopic, false);
   wifiConfig.publish(stateTopic, "OFF", true, false);
   wifiConfig.subscribe(levelCmdTopic, false);
