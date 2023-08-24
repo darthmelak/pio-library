@@ -5,7 +5,7 @@
 
 class HAlightHelper : public HAswitchHelper {
   public:
-    HAlightHelper(WifiConfig& wifiConfig, const char* suffix, int pin, int maxLevel = 255, bool invertState = false, bool debug = false);
+    HAlightHelper(WifiConfig& wifiConfig, const char* suffix, int pin, int maxLevel = 255, int minOffset = 0, int maxOffset = 0, bool invertState = false, bool debug = false);
     virtual ~HAlightHelper() {};
     virtual void begin();
     virtual void onMqttConnect();
@@ -13,6 +13,8 @@ class HAlightHelper : public HAswitchHelper {
   protected:
     int level;
     int maxLevel;
+    int minOffset;
+    int maxOffset;
     String levelStateTopic;
     String levelCmdTopic;
 };

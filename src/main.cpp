@@ -29,7 +29,7 @@ bool echoCount = false;
 Configuration config("/test", debug);
 WifiConfig wifiConfig(WIFI_SSID, WIFI_PASSWORD, "Testbed", "testbed", AUTH_USER, AUTH_PASS, true, true, debug);
 HAswitchHelper sw_1(wifiConfig, "whiteled", white, true, debug);
-HAlightHelper light_1(wifiConfig, "redled", red, 255, true, debug);
+HAlightHelper light_1(wifiConfig, "redled", red, 255, 0, 100, true, debug);
 Timer<2> timer;
 OneButton btn(button);
 

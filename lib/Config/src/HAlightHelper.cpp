@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "HAlightHelper.hpp"
 
-HAlightHelper::HAlightHelper(WifiConfig& wifiConfig, const char* suffix, int pin, int maxLevel, bool invertState, bool debug): HAswitchHelper(wifiConfig, suffix, pin, invertState, debug), maxLevel(maxLevel) {}
+HAlightHelper::HAlightHelper(WifiConfig& wifiConfig, const char* suffix, int pin, int maxLevel, int minOffset, int maxOffset, bool invertState, bool debug): HAswitchHelper(wifiConfig, suffix, pin, invertState, debug), maxLevel(maxLevel), minOffset(minOffset), maxOffset(maxOffset) {}
 
 void HAlightHelper::begin() {
   pinMode(pin, OUTPUT);
@@ -22,7 +22,9 @@ void HAlightHelper::begin() {
         level = invertState ? maxLevel : 0;
       } else {
         int lvl = config.getInt("level")->getIntVal();
-        level = invertState ? maxLevel - lvl : lvl;
+        level = invertState ?
+          map(lvl + 1, 0, maxLevel, maxLevel - maxOffset, minOffset) :
+          map(lvl, 0, maxLevel, minOffset, maxLevel - maxOffset);
       }
       analogWrite(pin, level);
       String state = value ? "ON" : "OFF";
@@ -34,7 +36,9 @@ void HAlightHelper::begin() {
         level < maxLevel :
         level > 0
       ) {
-        level = invertState ? maxLevel - value : value;
+        level = invertState ?
+          map(value + 1, 0, maxLevel, maxLevel - maxOffset, minOffset) :
+          map(value, 0, maxLevel, minOffset, maxLevel - maxOffset);
         analogWrite(pin, level);
       }
       wifiConfig.publish(levelStateTopic, String(value), true, false);
