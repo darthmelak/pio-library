@@ -84,7 +84,7 @@ class WifiConfig {
     void publish(const String& topic, const String& payload, bool retain = false, bool prefix = true);
     String getPrefixedTopic(const String& topic);
     void getPrefixedTopic(String& prefixedTopic, const String& topic);
-    SavedConfiguration getConfig();
+    SavedConfiguration& getConfig();
     String getSensorId();
     /**
      * generates binary sensor config payload
@@ -107,8 +107,8 @@ class WifiConfig {
     String switchConfigPayload(const String& suffix, String& cmdTopic, String& statTopic);
     /**
      * generates number config payload
-     * cmd topic: `number/{sensorId}_{suffix}/cmd/level`
-     * state topic: `number/{sensorId}_{suffix}/status/level`
+     * cmd topic: `number/{sensorId}_{suffix}/cmd`
+     * state topic: `number/{sensorId}_{suffix}/state`
      */
     String numberConfigPayload(const String& suffix, int min = 1, int max = 100, int step = 1);
     String numberConfigPayload(const String& suffix, String& cmdTopic, String& statTopic, int min = 1, int max = 100, int step = 1);

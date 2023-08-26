@@ -2,10 +2,12 @@
 #include <Arduino.h>
 #include <arduino-timer.h>
 #include <OneButton.h>
+#include <Servo.h>
 #include "Configurations.hpp"
 #include "WifiConfig.hpp"
 #include "HAswitchHelper.hpp"
 #include "HAlightHelper.hpp"
+#include "HAnumberHelper.hpp"
 #include "SerialHandler.hpp"
 #include "secrets.h"
 
@@ -15,25 +17,30 @@ int red = D6;
 int green = D1;
 int white = D2;
 int button = D5;
+int srvPin = D8;
 #else
 int yellow = 7;
 int red = 6;
 int green = 5;
 int white = 4;
 int button = 3;
+int srvPin = 8;
 #endif
 
 bool debug = true;
 bool echoCount = false;
 
+void serialCb(String);
+void nrCb(int);
+
 Configuration config("/test", debug);
 WifiConfig wifiConfig(WIFI_SSID, WIFI_PASSWORD, "Testbed", "testbed", AUTH_USER, AUTH_PASS, true, true, debug);
 HAswitchHelper sw_1(wifiConfig, "whiteled", white, true, debug);
-HAlightHelper light_1(wifiConfig, "redled", red, 255, 0, 100, true, debug);
+HAlightHelper light_1(wifiConfig, "redled", green, 255, 0, 100, true, debug);
+HAnumberHelper nr_1(wifiConfig, "nr", nrCb, 90, 0, 180, 1, debug);
 Timer<2> timer;
 OneButton btn(button);
-
-void serialCb(String);
+Servo servo;
 
 void setup() {
   if (debug) {
@@ -47,9 +54,9 @@ void setup() {
     .add("counter", 0, [](int value) {
       // wifiConfig.publish("state/counter", String(value));
     })
-    .add("green", 0, [](int value) {
-      Serial.printf("Green changed to: %d\n", value);
-      analogWrite(green, value);
+    .add("pin", 0, [](int value) {
+      Serial.printf("Pin changed to: %d\n", value);
+      analogWrite(red, value);
     })
   ;
 
@@ -80,6 +87,7 @@ void setup() {
   digitalWrite(yellow, LOW);
   pinMode(green, OUTPUT);
   digitalWrite(green, LOW);
+  servo.attach(srvPin);
   // timer.every(1000, [](void*) -> bool {
   //   digitalWrite(green, !digitalRead(green));
   //   IntConfig *counter = config.getInt("counter");
@@ -98,6 +106,7 @@ void setup() {
       // wifiConfig.subscribe("/cmd/led");
       sw_1.onMqttConnect();
       light_1.onMqttConnect();
+      nr_1.onMqttConnect();
     }, [](String topic, String data) {
       // if (topic == wifiConfig.getPrefixedTopic("/cmd/led")) {
       //   int state = data.toInt();
@@ -105,10 +114,12 @@ void setup() {
       // }
       sw_1.onMqttMessage(topic, data);
       light_1.onMqttMessage(topic, data);
+      nr_1.onMqttMessage(topic, data);
     })
   );
   sw_1.begin();
   light_1.begin();
+  nr_1.begin();
 }
 
 void loop() {
@@ -148,4 +159,8 @@ void serialCb(String buffer) {
     wconf.get("auth_pass")->setValue(AUTH_PASS);
     ESP.restart();
   }
+}
+
+void nrCb(int value) {
+  servo.write(value);
 }

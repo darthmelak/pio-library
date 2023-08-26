@@ -169,7 +169,7 @@ void WifiConfig::getPrefixedTopic(String& prefixedTopic, const String& topic) {
   prefixedTopic.replace("{sensorId}", sensorId);
 }
 
-SavedConfiguration WifiConfig::getConfig() {
+SavedConfiguration& WifiConfig::getConfig() {
   return config;
 }
 
@@ -292,11 +292,11 @@ String WifiConfig::numberConfigPayload(const String& suffix, String& cmdTopic, S
   snprintf(uniqId, 64, "%s_%s", sensorId.c_str(), suffix.c_str());
 
   if (cmdTopic.length() == 0) {
-    getPrefixedTopic(cmdTopic, "number/{sensorId}_{suffix}/cmd/level");
+    getPrefixedTopic(cmdTopic, "number/{sensorId}_{suffix}/cmd");
     cmdTopic.replace("{suffix}", suffix);
   }
   if (statTopic.length() == 0) {
-    getPrefixedTopic(statTopic, "number/{sensorId}_{suffix}/status/level");
+    getPrefixedTopic(statTopic, "number/{sensorId}_{suffix}/state");
     statTopic.replace("{suffix}", suffix);
   }
 
