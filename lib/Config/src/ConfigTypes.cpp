@@ -1,7 +1,7 @@
 #include "ConfigTypes.hpp"
 
 /* --== StringConfig ==-- */
-StringConfig::StringConfig(String name, String defaultValue, str_update_cb cb): name(name), next(NULL), value(defaultValue), cb(cb) {}
+StringConfig::StringConfig(const String& name, const String& defaultValue, str_update_cb cb): name(name), next(NULL), value(defaultValue), cb(cb) {}
 
 String StringConfig::getName() const {
   return name;
@@ -15,7 +15,7 @@ StringConfig *StringConfig::getNext() const {
   return next;
 }
 
-bool StringConfig::setValue(String value) {
+bool StringConfig::setValue(const String& value) {
   if (this->value == value) return false;
 
   this->value = value;
@@ -36,7 +36,7 @@ void StringConfig::setCb(str_update_cb cb) {
 }
 
 /* --== IntConfig ==-- */
-IntConfig::IntConfig(String name, int defaultValue, int_update_cb cb): StringConfig(name, String(defaultValue)), value(defaultValue), cb(cb) {}
+IntConfig::IntConfig(const String& name, int defaultValue, int_update_cb cb): StringConfig(name, String(defaultValue)), value(defaultValue), cb(cb) {}
 
 bool IntConfig::setValue(int value) {
   if (this->value == value) return false;
@@ -64,8 +64,8 @@ void IntConfig::setCb(int_update_cb cb) {
 
 /* --== SavedStringConfig ==-- */
 SavedStringConfig::SavedStringConfig(
-  String name,
-  String defaultValue,
+  const String& name,
+  const String& defaultValue,
   str_update_cb cb,
   int offset,
   int length
@@ -100,7 +100,7 @@ SavedStringConfig *SavedStringConfig::getNext() const {
   return next;
 }
 
-bool SavedStringConfig::setValue(String value) {
+bool SavedStringConfig::setValue(const String& value) {
   if (this->value == value) return false;
 
   this->value = value;
@@ -135,7 +135,7 @@ void SavedStringConfig::setCb(str_update_cb cb) {
 
 /* --== SavedIntConfig ==-- */
 SavedIntConfig::SavedIntConfig(
-  String name,
+  const String& name,
   int defaultValue,
   int_update_cb cb,
   int offset,

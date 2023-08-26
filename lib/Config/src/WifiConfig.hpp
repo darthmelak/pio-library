@@ -58,23 +58,23 @@ struct MQTTConnectProps {
 class WifiConfig {
   public:
     WifiConfig(
-      String ssid,
-      String password,
-      String name_default,
-      String hostname_default,
-      String auth_user_default = AUTH_USER_DEFAULT,
-      String auth_pass_default = AUTH_PASS_DEFAULT,
+      const String& ssid,
+      const String& password,
+      const String& name_default,
+      const String& hostname_default,
+      const String& auth_user_default = AUTH_USER_DEFAULT,
+      const String& auth_pass_default = AUTH_PASS_DEFAULT,
       bool useOTA = true,
       bool runWebServer = true,
       bool debug = false
     );
     void begin();
     void beginMQTT(
-      String mqtt_server_default = "test.mosquitto.org",
+      const String& mqtt_server_default = "test.mosquitto.org",
       int mqtt_port_default = 1883,
-      String mqtt_user_default = "test",
-      String mqtt_password_default = "pass",
-      String mqtt_prefix_default = "homeassistant/",
+      const String& mqtt_user_default = "test",
+      const String& mqtt_password_default = "pass",
+      const String& mqtt_prefix_default = "homeassistant/",
       MQTTConnectProps props = MQTTConnectProps()
     );
     void loop();
@@ -90,12 +90,14 @@ class WifiConfig {
      * generates binary sensor config payload
      * state topic: `binary_sensor/{sensorId}_{suffix}/state`
      */
-    String binarySensorConfigPayload(String suffix, String deviceClass);
+    String binarySensorConfigPayload(const String& suffix, const String& deviceClass);
+    String binarySensorConfigPayload(const String& suffix, String& statTopic, const String& deviceClass);
     /**
      * generates sensor config payload
      * state topic: `sensor/{sensorId}_{suffix}/state`
      */
-    String sensorConfigPayload(String suffix, String deviceClass, String unit);
+    String sensorConfigPayload(const String& suffix, const String& deviceClass, const String& unit);
+    String sensorConfigPayload(const String& suffix, String& statTopic, const String& deviceClass, const String& unit);
     /**
      * generates switch config payload
      * cmd topic: `switch/{sensorId}_{suffix}/cmd`
@@ -104,16 +106,12 @@ class WifiConfig {
     String switchConfigPayload(const String& suffix);
     String switchConfigPayload(const String& suffix, String& cmdTopic, String& statTopic);
     /**
-     * generates fan config payload
-     * cmd topic: `fan/{sensorId}_{suffix}/cmd/state`
-     * state topic: `fan/{sensorId}_{suffix}/status/state`
-     * speed cmd topic: `fan/{sensorId}_{suffix}/cmd/speed`
-     * speed state topic: `fan/{sensorId}_{suffix}/status/speed`
-     * oscillate cmd topic: `fan/{sensorId}_{suffix}/cmd/oscillate`
-     * oscillate state topic: `fan/{sensorId}_{suffix}/status/oscillate`
+     * generates number config payload
+     * cmd topic: `number/{sensorId}_{suffix}/cmd/level`
+     * state topic: `number/{sensorId}_{suffix}/status/level`
      */
-    String fanConfigPayload(String suffix, bool speed = true, bool oscillate = true, int maxSpeed = 8);
-
+    String numberConfigPayload(const String& suffix, int min = 1, int max = 100, int step = 1);
+    String numberConfigPayload(const String& suffix, String& cmdTopic, String& statTopic, int min = 1, int max = 100, int step = 1);
     /**
      * generates light config payload (brightness, on/off)
      * cmd topic: `light/{sensorId}_{suffix}/cmd/state`
@@ -123,6 +121,17 @@ class WifiConfig {
      */
     String lightConfigPayload(const String& suffix, int maxlevel = 255);
     String lightConfigPayload(const String& suffix, String& cmdTopic, String& statTopic, String& levelCmdTopic, String& levelStatTopic, int maxlevel = 255);
+    /**
+     * generates fan config payload
+     * cmd topic: `fan/{sensorId}_{suffix}/cmd/state`
+     * state topic: `fan/{sensorId}_{suffix}/status/state`
+     * speed cmd topic: `fan/{sensorId}_{suffix}/cmd/speed`
+     * speed state topic: `fan/{sensorId}_{suffix}/status/speed`
+     * oscillate cmd topic: `fan/{sensorId}_{suffix}/cmd/oscillate`
+     * oscillate state topic: `fan/{sensorId}_{suffix}/status/oscillate`
+     */
+    String fanConfigPayload(const String& suffix, bool speed = true, bool oscillate = true, int maxSpeed = 8);
+    String fanConfigPayload(const String& suffix, String& cmdTopic, String& statTopic, String& spdCmdTopic, String& spdStatTopic, String& oscCmdTopic, String& oscStatTopic, bool speed = true, bool oscillate = true, int maxSpeed = 8);
 
     #ifdef ESP8266
     ESP8266WebServer* getServer();

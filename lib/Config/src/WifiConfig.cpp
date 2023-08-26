@@ -34,12 +34,12 @@ PubSubClient mqtt(wifiClient);
 char mqttServer[64];
 
 WifiConfig::WifiConfig(
-  String ssid,
-  String password,
-  String name_default,
-  String hostname_default,
-  String auth_user_default,
-  String auth_pass_default,
+  const String& ssid,
+  const String& password,
+  const String& name_default,
+  const String& hostname_default,
+  const String& auth_user_default,
+  const String& auth_pass_default,
   bool useOTA,
   bool runWebServer,
   bool debug
@@ -71,11 +71,11 @@ void WifiConfig::begin() {
 }
 
 void WifiConfig::beginMQTT(
-  String mqtt_server_default,
+  const String& mqtt_server_default,
   int mqtt_port_default,
-  String mqtt_user_default,
-  String mqtt_password_default,
-  String mqtt_prefix_default,
+  const String& mqtt_user_default,
+  const String& mqtt_password_default,
+  const String& mqtt_prefix_default,
   MQTTConnectProps props
 ) {
   runMQTT = true;
@@ -177,40 +177,64 @@ String WifiConfig::getSensorId() {
   return sensorId;
 }
 
-String WifiConfig::binarySensorConfigPayload(String suffix, String deviceClass) {
-  String name = config.get(C_NAME)->getValue();
-  String statTopic = "binary_sensor/{sensorId}_{suffix}/state";
-  statTopic.replace("{suffix}", suffix);
+String WifiConfig::binarySensorConfigPayload(const String& suffix, const String& deviceClass) {
+  String statTopic;
+  return binarySensorConfigPayload(suffix, statTopic, deviceClass);
+}
+
+String WifiConfig::binarySensorConfigPayload(const String& suffix, String& statTopic, const String& deviceClass) {
+  const String& name = config.get(C_NAME)->getValue();
+  char suffixName[64];
+  snprintf(suffixName, 64, "%s_%s", name.c_str(), suffix.c_str());
+  char uniqId[64];
+  snprintf(uniqId, 64, "%s_%s", sensorId.c_str(), suffix.c_str());
+
+  if (statTopic.length() == 0) {
+    getPrefixedTopic(statTopic, "binary_sensor/{sensorId}_{suffix}/state");
+    statTopic.replace("{suffix}", suffix);
+  }
 
   StaticJsonDocument<512> json;
   json["dev"]["identifiers"] = sensorId;
   json["dev"]["model"] = config.get(C_MODL)->getValue();
   json["dev"]["name"] = name;
+  json["name"] = suffixName;
+  json["uniq_id"] = uniqId;
   json["dev_cla"] = deviceClass;
-  json["name"] = name + " " + suffix;
-  json["stat_t"] = getPrefixedTopic(statTopic);
-  json["uniq_id"] = sensorId + "_" + suffix;
+  json["stat_t"] = statTopic;
 
   String jsonStr;
   serializeJson(json, jsonStr);
   return jsonStr;
 }
 
-String WifiConfig::sensorConfigPayload(String suffix, String deviceClass, String unit) {
-  String name = config.get(C_NAME)->getValue();
-  String statTopic = "sensor/{sensorId}_{suffix}/state";
-  statTopic.replace("{suffix}", suffix);
+String WifiConfig::sensorConfigPayload(const String& suffix, const String& deviceClass, const String& unit) {
+  String statTopic;
+  return sensorConfigPayload(suffix, statTopic, deviceClass, unit);
+}
+
+String WifiConfig::sensorConfigPayload(const String& suffix, String& statTopic, const String& deviceClass, const String& unit) {
+  const String& name = config.get(C_NAME)->getValue();
+  char suffixName[64];
+  snprintf(suffixName, 64, "%s_%s", name.c_str(), suffix.c_str());
+  char uniqId[64];
+  snprintf(uniqId, 64, "%s_%s", sensorId.c_str(), suffix.c_str());
+
+  if (statTopic.length() == 0) {
+    getPrefixedTopic(statTopic, "sensor/{sensorId}_{suffix}/state");
+    statTopic.replace("{suffix}", suffix);
+  }
 
   StaticJsonDocument<512> json;
   json["dev"]["identifiers"] = sensorId;
   json["dev"]["model"] = config.get(C_MODL)->getValue();
   json["dev"]["name"] = name;
+  json["name"] = suffixName;
+  json["uniq_id"] = uniqId;
   json["dev_cla"] = deviceClass;
-  json["name"] = name + " " + suffix;
-  json["stat_t"] = getPrefixedTopic(statTopic);
+  json["stat_t"] = statTopic;
   json["stat_cla"] = "measurement";
   json["unit_of_meas"] = unit;
-  json["uniq_id"] = sensorId + "_" + suffix;
 
   String jsonStr;
   serializeJson(json, jsonStr);
@@ -224,7 +248,12 @@ String WifiConfig::switchConfigPayload(const String& suffix) {
 }
 
 String WifiConfig::switchConfigPayload(const String& suffix, String& cmdTopic, String& statTopic) {
-  String name = config.get(C_NAME)->getValue();
+  const String& name = config.get(C_NAME)->getValue();
+  char suffixName[64];
+  snprintf(suffixName, 64, "%s_%s", name.c_str(), suffix.c_str());
+  char uniqId[64];
+  snprintf(uniqId, 64, "%s_%s", sensorId.c_str(), suffix.c_str());
+
   if (cmdTopic.length() == 0) {
     getPrefixedTopic(cmdTopic, "switch/{sensorId}_{suffix}/cmd");
     cmdTopic.replace("{suffix}", suffix);
@@ -238,51 +267,51 @@ String WifiConfig::switchConfigPayload(const String& suffix, String& cmdTopic, S
   json["dev"]["identifiers"] = sensorId;
   json["dev"]["model"] = config.get(C_MODL)->getValue();
   json["dev"]["name"] = name;
+  json["name"] = suffixName;
+  json["uniq_id"] = uniqId;
   json["dev_cla"] = "switch";
-  json["name"] = name + " " + suffix;
   json["cmd_t"] = cmdTopic;
   json["stat_t"] = statTopic;
-  json["uniq_id"] = sensorId + "_" + suffix;
 
   String jsonStr;
   serializeJson(json, jsonStr);
   return jsonStr;
 }
 
-String WifiConfig::fanConfigPayload(String suffix, bool speed, bool oscillate, int maxSpeed) {
-  String name = config.get(C_NAME)->getValue();
-  String cmdTopic = "fan/{sensorId}_{suffix}/cmd/state";
-  cmdTopic.replace("{suffix}", suffix);
-  String statTopic = "fan/{sensorId}_{suffix}/status/state";
-  statTopic.replace("{suffix}", suffix);
+String WifiConfig::numberConfigPayload(const String& suffix, int min, int max, int step) {
+  String cmdTopic;
+  String statTopic;
+  return numberConfigPayload(suffix, cmdTopic, statTopic, min, max, step);
+}
 
-  StaticJsonDocument<768> json;
+String WifiConfig::numberConfigPayload(const String& suffix, String& cmdTopic, String& statTopic, int min, int max, int step) {
+  const String& name = config.get(C_NAME)->getValue();
+  char suffixName[64];
+  snprintf(suffixName, 64, "%s_%s", name.c_str(), suffix.c_str());
+  char uniqId[64];
+  snprintf(uniqId, 64, "%s_%s", sensorId.c_str(), suffix.c_str());
+
+  if (cmdTopic.length() == 0) {
+    getPrefixedTopic(cmdTopic, "number/{sensorId}_{suffix}/cmd/level");
+    cmdTopic.replace("{suffix}", suffix);
+  }
+  if (statTopic.length() == 0) {
+    getPrefixedTopic(statTopic, "number/{sensorId}_{suffix}/status/level");
+    statTopic.replace("{suffix}", suffix);
+  }
+
+  StaticJsonDocument<512> json;
   json["dev"]["identifiers"] = sensorId;
   json["dev"]["model"] = config.get(C_MODL)->getValue();
   json["dev"]["name"] = name;
-  json["name"] = name + " " + suffix;
-  json["spd_rng_max"] = maxSpeed;
-  json["cmd_t"] = getPrefixedTopic(cmdTopic);
-  json["stat_t"] = getPrefixedTopic(statTopic);
-  if (speed) {
-    String pctCmdTopic = "fan/{sensorId}_{suffix}/cmd/speed";
-    pctCmdTopic.replace("{suffix}", suffix);
-    String pctStatTopic = "fan/{sensorId}_{suffix}/status/speed";
-    pctStatTopic.replace("{suffix}", suffix);
-
-    json["pct_cmd_t"] = getPrefixedTopic(pctCmdTopic);
-    json["pct_stat_t"] = getPrefixedTopic(pctStatTopic);
-  }
-  if (oscillate) {
-    String oscCmdTopic = "fan/{sensorId}_{suffix}/cmd/oscillate";
-    oscCmdTopic.replace("{suffix}", suffix);
-    String oscStatTopic = "fan/{sensorId}_{suffix}/status/oscillate";
-    oscStatTopic.replace("{suffix}", suffix);
-
-    json["osc_cmd_t"] = getPrefixedTopic(oscCmdTopic);
-    json["osc_stat_t"] = getPrefixedTopic(oscStatTopic);
-  }
-  json["uniq_id"] = sensorId + "_" + suffix;
+  json["name"] = suffixName;
+  json["uniq_id"] = uniqId;
+  json["mode"] = "slider";
+  json["cmd_t"] = cmdTopic;
+  json["stat_t"] = statTopic;
+  json["min"] = min;
+  json["max"] = max;
+  json["step"] = step;
 
   String jsonStr;
   serializeJson(json, jsonStr);
@@ -298,7 +327,12 @@ String WifiConfig::lightConfigPayload(const String& suffix, int maxlevel) {
 }
 
 String WifiConfig::lightConfigPayload(const String& suffix, String& cmdTopic, String& statTopic, String& levelCmdTopic, String& levelStatTopic, int maxlevel) {
-  String name = config.get(C_NAME)->getValue();
+  const String& name = config.get(C_NAME)->getValue();
+  char suffixName[64];
+  snprintf(suffixName, 64, "%s_%s", name.c_str(), suffix.c_str());
+  char uniqId[64];
+  snprintf(uniqId, 64, "%s_%s", sensorId.c_str(), suffix.c_str());
+
   if (cmdTopic.length() == 0) {
     getPrefixedTopic(cmdTopic, "light/{sensorId}_{suffix}/cmd/state");
     cmdTopic.replace("{suffix}", suffix);
@@ -320,13 +354,80 @@ String WifiConfig::lightConfigPayload(const String& suffix, String& cmdTopic, St
   json["dev"]["identifiers"] = sensorId;
   json["dev"]["model"] = config.get(C_MODL)->getValue();
   json["dev"]["name"] = name;
-  json["name"] = name + " " + suffix;
+  json["name"] = suffixName;
+  json["uniq_id"] = uniqId;
   json["bri_scl"] = maxlevel;
   json["cmd_t"] = cmdTopic;
   json["stat_t"] = statTopic;
   json["bri_cmd_t"] = levelCmdTopic;
   json["bri_stat_t"] = levelStatTopic;
-  json["uniq_id"] = sensorId + "_" + suffix;
+
+  String jsonStr;
+  serializeJson(json, jsonStr);
+  return jsonStr;
+}
+
+String WifiConfig::fanConfigPayload(const String& suffix, bool speed, bool oscillate, int maxSpeed) {
+  String cmdTopic;
+  String statTopic;
+  String spdCmdTopic;
+  String spdStatTopic;
+  String oscCmdTopic;
+  String oscStatTopic;
+  return fanConfigPayload(suffix, cmdTopic, statTopic, spdCmdTopic, spdStatTopic, oscCmdTopic, oscStatTopic, speed, oscillate, maxSpeed);
+}
+
+String WifiConfig::fanConfigPayload(const String& suffix, String& cmdTopic, String& statTopic, String& spdCmdTopic, String& spdStatTopic, String& oscCmdTopic, String& oscStatTopic, bool speed, bool oscillate, int maxSpeed) {
+  const String& name = config.get(C_NAME)->getValue();
+  char suffixName[64];
+  snprintf(suffixName, 64, "%s_%s", name.c_str(), suffix.c_str());
+  char uniqId[64];
+  snprintf(uniqId, 64, "%s_%s", sensorId.c_str(), suffix.c_str());
+
+  if (cmdTopic.length() == 0) {
+    getPrefixedTopic(cmdTopic, "fan/{sensorId}_{suffix}/cmd/state");
+    cmdTopic.replace("{suffix}", suffix);
+  }
+  if (statTopic.length() == 0) {
+    getPrefixedTopic(statTopic, "fan/{sensorId}_{suffix}/status/state");
+    statTopic.replace("{suffix}", suffix);
+  }
+
+  StaticJsonDocument<768> json;
+  json["dev"]["identifiers"] = sensorId;
+  json["dev"]["model"] = config.get(C_MODL)->getValue();
+  json["dev"]["name"] = name;
+  json["name"] = suffixName;
+  json["uniq_id"] = uniqId;
+  json["spd_rng_max"] = maxSpeed;
+  json["cmd_t"] = cmdTopic;
+  json["stat_t"] = statTopic;
+  if (speed) {
+    if (spdCmdTopic.length() == 0) {
+      getPrefixedTopic(spdCmdTopic, "fan/{sensorId}_{suffix}/cmd/speed");
+      spdCmdTopic.replace("{suffix}", suffix);
+    }
+    if (spdStatTopic.length() == 0) {
+      getPrefixedTopic(spdStatTopic, "fan/{sensorId}_{suffix}/status/speed");
+      spdStatTopic.replace("{suffix}", suffix);
+    }
+
+    json["pct_cmd_t"] = spdCmdTopic;
+    json["pct_stat_t"] = spdStatTopic;
+  }
+  if (oscillate) {
+    if (oscCmdTopic.length() == 0) {
+      getPrefixedTopic(oscCmdTopic, "fan/{sensorId}_{suffix}/cmd/oscillate");
+      oscCmdTopic.replace("{suffix}", suffix);
+    }
+    if (oscStatTopic.length() == 0) {
+      getPrefixedTopic(oscStatTopic, "fan/{sensorId}_{suffix}/status/oscillate");
+      oscStatTopic.replace("{suffix}", suffix);
+    }
+
+    json["osc_cmd_t"] = oscCmdTopic;
+    json["osc_stat_t"] = oscStatTopic;
+  }
 
   String jsonStr;
   serializeJson(json, jsonStr);

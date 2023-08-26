@@ -12,7 +12,7 @@ String Configuration::getPath() const {
   return path;
 }
 
-Configuration& Configuration::add(const String& name, String defaultValue, str_update_cb cb) {
+Configuration& Configuration::add(const String& name, const String& defaultValue, str_update_cb cb) {
   StringConfig *config = new StringConfig(name, defaultValue, cb);
   chain(config);
 
@@ -118,7 +118,7 @@ int SavedConfiguration::getSize() const {
   return size;
 }
 
-SavedConfiguration& SavedConfiguration::add(const String& name, String defaultValue, str_update_cb cb, int length) {
+SavedConfiguration& SavedConfiguration::add(const String& name, const String& defaultValue, str_update_cb cb, int length) {
   SavedStringConfig *config = new SavedStringConfig(name, defaultValue, cb, size, length);
   size += config->getLength();
   chain(config);

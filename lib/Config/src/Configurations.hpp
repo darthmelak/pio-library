@@ -13,7 +13,7 @@ class Configuration {
     virtual ~Configuration() {};
     void setPath(const char* path);
     String getPath() const;
-    Configuration& add(const String& name, String defaultValue, str_update_cb cb = NULL);
+    Configuration& add(const String& name, const String& defaultValue, str_update_cb cb = NULL);
     Configuration& add(const String& name, int defaultValue, int_update_cb cb = NULL);
     StringConfig *get(const String& name) const;
     IntConfig *getInt(const String& name) const;
@@ -35,7 +35,7 @@ class SavedConfiguration: public Configuration {
     SavedConfiguration(const char* path, bool debug = false);
     void begin();
     int getSize() const;
-    SavedConfiguration& add(const String& name, String defaultValue, str_update_cb cb = NULL, int length = 64);
+    SavedConfiguration& add(const String& name, const String& defaultValue, str_update_cb cb = NULL, int length = 64);
     SavedConfiguration& add(const String& name, int defaultValue, int_update_cb cb = NULL);
     SavedStringConfig *get(const String& name) const;
     SavedIntConfig *getInt(const String& name) const;
