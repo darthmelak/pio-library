@@ -8,10 +8,12 @@
 #include "HAswitchHelper.hpp"
 #include "HAlightHelper.hpp"
 #include "HAnumberHelper.hpp"
+#include "HAfanHelper.hpp"
 #include "SerialHandler.hpp"
 #include "secrets.h"
 
 #ifdef ESP8266
+int analog = A0;
 int yellow = D7;
 int red = D6;
 int green = D1;
@@ -19,6 +21,7 @@ int white = D2;
 int button = D5;
 int srvPin = D8;
 #else
+int analog = 1;
 int yellow = 7;
 int red = 6;
 int green = 5;
@@ -38,6 +41,7 @@ WifiConfig wifiConfig(WIFI_SSID, WIFI_PASSWORD, "Testbed", "testbed", AUTH_USER,
 HAswitchHelper sw_1(wifiConfig, "greenled", green, true, debug);
 HAlightHelper light_1(wifiConfig, "whiteled", white, 10, 0, 0, true, debug);
 HAnumberHelper nr_1(wifiConfig, "nr", nrCb, 90, 0, 180, 1, debug);
+HAfanHelper fan_1(wifiConfig, "fan", red, 8, 0, 0, false, debug);
 Timer<2> timer;
 OneButton btn(button);
 Servo servo;
@@ -49,6 +53,7 @@ void setup() {
   }
 
   analogWriteFreq(4000);
+  randomSeed(analogRead(analog));
 
   config
     .add("counter", 0, [](int value) {
@@ -107,6 +112,7 @@ void setup() {
       sw_1.onMqttConnect();
       light_1.onMqttConnect();
       nr_1.onMqttConnect();
+      fan_1.onMqttConnect();
     }, [](String topic, String data) {
       // if (topic == wifiConfig.getPrefixedTopic("/cmd/led")) {
       //   int state = data.toInt();
@@ -115,11 +121,13 @@ void setup() {
       sw_1.onMqttMessage(topic, data);
       light_1.onMqttMessage(topic, data);
       nr_1.onMqttMessage(topic, data);
+      fan_1.onMqttMessage(topic, data);
     })
   );
   sw_1.begin();
   light_1.begin();
   nr_1.begin();
+  fan_1.begin();
 }
 
 void loop() {
@@ -128,6 +136,7 @@ void loop() {
   digitalWrite(yellow, wifiConfig.isWifiConnected() ? LOW : HIGH);
   timer.tick();
   btn.tick();
+  fan_1.tick();
   delay(1);
 }
 

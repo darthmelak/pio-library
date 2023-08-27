@@ -5,6 +5,12 @@ HAlightHelper::HAlightHelper(WifiConfig& wifiConfig, const char* suffix, int pin
 
 void HAlightHelper::begin() {
   pinMode(pin, OUTPUT);
+  #ifdef ESP32
+  ledcAttachPin(pin, pwmChannel);
+  int ledStatus = ledcSetup(pwmChannel, 25000, 8);
+  if (debug) Serial.printf("ledcSetup channel: %d, status: %d\n", pwmChannel, ledStatus);
+  pwmChannel++;
+  #endif
   digitalWrite(pin, invertState ? HIGH : LOW);
 
   wifiConfig.getPrefixedTopic(cmdTopic, "light/{sensorId}_{suffix}/cmd/state");
@@ -65,3 +71,5 @@ void HAlightHelper::onMqttMessage(const String& topic, const String& payload) {
     config.getInt("level")->setValue(payload.toInt());
   }
 }
+
+int HAlightHelper::pwmChannel = 0;
