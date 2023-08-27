@@ -130,8 +130,8 @@ class WifiConfig {
      * oscillate cmd topic: `fan/{sensorId}_{suffix}/cmd/oscillate`
      * oscillate state topic: `fan/{sensorId}_{suffix}/status/oscillate`
      */
-    String fanConfigPayload(const String& suffix, bool speed = true, bool oscillate = true, int maxSpeed = 8);
-    String fanConfigPayload(const String& suffix, String& cmdTopic, String& statTopic, String& spdCmdTopic, String& spdStatTopic, String& oscCmdTopic, String& oscStatTopic, bool speed = true, bool oscillate = true, int maxSpeed = 8);
+    String fanConfigPayload(const String& suffix, int maxSpeed = 8);
+    String fanConfigPayload(const String& suffix, String& cmdTopic, String& statTopic, String& spdCmdTopic, String& spdStatTopic, String& oscCmdTopic, String& oscStatTopic, int maxSpeed = 8);
 
     #ifdef ESP8266
     ESP8266WebServer* getServer();

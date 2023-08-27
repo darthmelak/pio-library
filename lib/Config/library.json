@@ -11,7 +11,11 @@
     "ConfigTypes.hpp",
     "Configurations.hpp",
     "WifiConfig.hpp",
-    "SerialHandler.hpp"
+    "HAswitchHelper.hpp",
+    "HAlightHelper.hpp",
+    "HAnumberHelper.hpp",
+    "SerialHandler.hpp",
+    "ArduinoMap.hpp"
   ],
   "dependencies": {
     "bblanchon/ArduinoJson": "^6.19.4",

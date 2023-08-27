@@ -19,13 +19,14 @@ void HAlightHelper::begin() {
   config
     .add("state", LOW, [this](int value) {
       if (value == LOW) {
-        level = invertState ? maxLevel : 0;
+        level = invertState ? 255 : 0;
       } else {
         int lvl = config.getInt("level")->getIntVal();
         level = invertState ?
-          map(lvl + 1, 0, maxLevel, maxLevel - maxOffset, minOffset) :
-          map(lvl, 0, maxLevel, minOffset, maxLevel - maxOffset);
+          mapRng(lvl, 0, maxLevel, 255 - maxOffset, minOffset) :
+          mapRng(lvl, 0, maxLevel, minOffset, 255 - maxOffset);
       }
+      Serial.print("Level:");Serial.println(level);
       analogWrite(pin, level);
       String state = value ? "ON" : "OFF";
       wifiConfig.publish(stateTopic, state, true, false);
@@ -33,12 +34,13 @@ void HAlightHelper::begin() {
     .add("level", 1, [this](int value) {
       if (
         invertState ?
-        level < maxLevel :
+        level < 255 :
         level > 0
       ) {
         level = invertState ?
-          map(value + 1, 0, maxLevel, maxLevel - maxOffset, minOffset) :
-          map(value, 0, maxLevel, minOffset, maxLevel - maxOffset);
+          mapRng(value, 0, maxLevel, 255 - maxOffset, minOffset) :
+          mapRng(value, 0, maxLevel, minOffset, 255 - maxOffset);
+        Serial.print("Level:");Serial.println(level);
         analogWrite(pin, level);
       }
       wifiConfig.publish(levelStateTopic, String(value), true, false);

@@ -35,8 +35,8 @@ void nrCb(int);
 
 Configuration config("/test", debug);
 WifiConfig wifiConfig(WIFI_SSID, WIFI_PASSWORD, "Testbed", "testbed", AUTH_USER, AUTH_PASS, true, true, debug);
-HAswitchHelper sw_1(wifiConfig, "whiteled", white, true, debug);
-HAlightHelper light_1(wifiConfig, "redled", green, 255, 0, 100, true, debug);
+HAswitchHelper sw_1(wifiConfig, "greenled", green, true, debug);
+HAlightHelper light_1(wifiConfig, "whiteled", white, 10, 0, 0, true, debug);
 HAnumberHelper nr_1(wifiConfig, "nr", nrCb, 90, 0, 180, 1, debug);
 Timer<2> timer;
 OneButton btn(button);

@@ -2,6 +2,7 @@
 #define HAlightHelper_h
 
 #include "HAswitchHelper.hpp"
+#include "ArduinoMap.hpp"
 
 class HAlightHelper : public HAswitchHelper {
   public:
