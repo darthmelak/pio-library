@@ -77,7 +77,7 @@ SavedStringConfig::SavedStringConfig(
   cb(cb) {}
 
 void SavedStringConfig::setup() {
-  char buffer[64];
+  char buffer[length];
   char charbuff;
 
   for (int i = 0; i < length; i++) {

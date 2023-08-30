@@ -44,10 +44,11 @@ class SavedConfiguration: public Configuration {
     bool fromJson(JsonDocument& json);
     String getStrVal(const String& name) const;
   protected:
-    int size;
     SavedStringConfig *first;
     SavedStringConfig *last;
     void chain(SavedStringConfig *config);
+    static int size;
+    static bool initialized;
 };
 
 #endif

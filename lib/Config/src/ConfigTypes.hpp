@@ -7,7 +7,7 @@
 #define CONF_T_STR "str"
 #define CONF_T_INT "int"
 
-typedef std::function<void(String)> str_update_cb;
+typedef std::function<void(const String&)> str_update_cb;
 typedef std::function<void(int)> int_update_cb;
 
 class StringConfig {

@@ -76,7 +76,8 @@ void WifiConfig::beginMQTT(
   const String& mqtt_user_default,
   const String& mqtt_password_default,
   const String& mqtt_prefix_default,
-  MQTTConnectProps props
+  MQTTConnectProps props,
+  after_add_before_begin_cb cb
 ) {
   runMQTT = true;
   config
@@ -86,6 +87,7 @@ void WifiConfig::beginMQTT(
     .add(C_MQ_PASS, mqtt_password_default)
     .add(C_MQ_PREF, mqtt_prefix_default);
   mqttProps = props;
+  if (cb != NULL) cb();
   begin();
 }
 

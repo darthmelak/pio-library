@@ -102,10 +102,14 @@ String Configuration::getStrVal(const String& name) const {
   return "";
 }
 
-SavedConfiguration::SavedConfiguration(const char* path, bool debug): Configuration(path, debug), size(0), first(NULL), last(NULL) {}
+SavedConfiguration::SavedConfiguration(const char* path, bool debug): Configuration(path, debug), first(NULL), last(NULL) {}
 
 void SavedConfiguration::begin() {
-  EEPROM.begin(size+32);
+  // only begin EEPROM once
+  if (!initialized) {
+    EEPROM.begin(size+16);
+    initialized = true;
+  }
   SavedStringConfig *current = first;
   while (current != NULL) {
     current->setup();
@@ -209,3 +213,6 @@ void SavedConfiguration::chain(SavedStringConfig *config) {
     last = config;
   }
 }
+
+int SavedConfiguration::size = 0;
+bool SavedConfiguration::initialized = false;

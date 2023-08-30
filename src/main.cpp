@@ -3,6 +3,7 @@
 #include <arduino-timer.h>
 #include <OneButton.h>
 #include <Servo.h>
+#include <ArduinoJson.h>
 #include "Configurations.hpp"
 #include "WifiConfig.hpp"
 #include "HAswitchHelper.hpp"
@@ -38,6 +39,7 @@ void nrCb(int);
 
 Configuration config("/test", debug);
 WifiConfig wifiConfig(WIFI_SSID, WIFI_PASSWORD, "Testbed", "testbed", AUTH_USER, AUTH_PASS, true, true, debug);
+SavedConfiguration savedJson("/json", debug);
 HAswitchHelper sw_1(wifiConfig, "greenled", green, true, debug);
 HAlightHelper light_1(wifiConfig, "whiteled", white, 10, 0, 0, true, debug);
 HAnumberHelper nr_1(wifiConfig, "nr", nrCb, 90, 0, 180, 1, debug);
@@ -45,6 +47,7 @@ HAfanHelper fan_1(wifiConfig, "fan", red, 8, 0, 0, false, debug);
 Timer<2> timer;
 OneButton btn(button);
 Servo servo;
+StaticJsonDocument<1024> stations;
 
 void setup() {
   if (debug) {
@@ -87,6 +90,7 @@ void setup() {
       Serial.println("Config unchanged");
     }
   });
+  wifiConfig.registerConfigApi(savedJson);
 
   pinMode(yellow, OUTPUT);
   digitalWrite(yellow, LOW);
@@ -122,8 +126,20 @@ void setup() {
       light_1.onMqttMessage(topic, data);
       nr_1.onMqttMessage(topic, data);
       fan_1.onMqttMessage(topic, data);
-    })
+    }),
+    []() {
+      savedJson.add("stations", "[]", [](const String& value) {
+        deserializeJson(stations, value);
+        JsonArray arr = stations.as<JsonArray>();
+        for (int i = 0; i < arr.size(); i++) {
+          String station = arr[i].as<String>();
+          Serial.println(station);
+        }
+      }, 1024);
+    }
   );
+  savedJson.begin();
+  deserializeJson(stations, savedJson.getStrVal("stations"));
   sw_1.begin();
   light_1.begin();
   nr_1.begin();

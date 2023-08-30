@@ -35,6 +35,7 @@
 typedef std::function<void(bool)> post_update_cb;
 typedef std::function<void()> mqtt_connect_cb;
 typedef std::function<void(String, String)> mqtt_cb;
+typedef std::function<void()> after_add_before_begin_cb;
 
 struct ConnectionStatus {
   unsigned long from = 0;
@@ -75,7 +76,8 @@ class WifiConfig {
       const String& mqtt_user_default = "test",
       const String& mqtt_password_default = "pass",
       const String& mqtt_prefix_default = "homeassistant/",
-      MQTTConnectProps props = MQTTConnectProps()
+      MQTTConnectProps props = MQTTConnectProps(),
+      after_add_before_begin_cb cb = NULL
     );
     void loop();
     bool isWifiConnected();
