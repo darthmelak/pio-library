@@ -19,7 +19,7 @@ bool StringConfig::setValue(const String& value) {
   if (this->value == value) return false;
 
   this->value = value;
-  if (cb != NULL) cb(value);
+  if (cb != nullptr) cb(value);
   return true;
 }
 
@@ -42,7 +42,7 @@ bool IntConfig::setValue(int value) {
   if (this->value == value) return false;
 
   this->value = value;
-  if (cb != NULL) cb(value);
+  if (cb != nullptr) cb(value);
   return true;
 }
 
@@ -113,7 +113,7 @@ bool SavedStringConfig::setValue(const String& value) {
   }
   EEPROM.commit();
 
-  if (cb != NULL) cb(value);
+  if (cb != nullptr) cb(value);
   return true;
 }
 
@@ -160,7 +160,7 @@ bool SavedIntConfig::setValue(int value) {
   SavedStringConfig::setValue(String(value));
   this->value = value;
 
-  if (cb != NULL) cb(value);
+  if (cb != nullptr) cb(value);
   return true;
 }
 
@@ -205,14 +205,16 @@ void SavedJsonConfig::setup() {
 }
 
 bool SavedJsonConfig::setValue(const JsonDocument& value) {
-  if (this->value == value) return false;
-
   String strVal;
   serializeJson(value, strVal);
+  String innerVal;
+  serializeJson(this->value, innerVal);
+  if (innerVal == strVal) return false;
+
   SavedStringConfig::setValue(strVal);
   this->value = value;
 
-  if (cb != NULL) cb(value);
+  if (cb != nullptr) cb(value);
   return true;
 }
 

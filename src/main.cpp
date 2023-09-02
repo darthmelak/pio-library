@@ -47,7 +47,6 @@ HAfanHelper fan_1(wifiConfig, "fan", red, 8, 0, 0, false, debug);
 Timer<2> timer;
 OneButton btn(button);
 Servo servo;
-StaticJsonDocument<1024> stations;
 
 void setup() {
   if (debug) {
@@ -90,7 +89,13 @@ void setup() {
       Serial.println("Config unchanged");
     }
   });
-  wifiConfig.registerConfigApi(savedJson, nullptr, false, 1024);
+  wifiConfig.registerConfigApi(savedJson, [](bool changed) {
+    if (changed) {
+      Serial.println("Json config updated");
+    } else {
+      Serial.println("Json config unchanged");
+    }
+  }, false, 1024);
 
   pinMode(yellow, OUTPUT);
   digitalWrite(yellow, LOW);
@@ -129,7 +134,7 @@ void setup() {
     }),
     []() {
       savedJson.addJson("stations", "[]", [](const JsonDocument& value) {
-        JsonArray arr = stations.as<JsonArray>();
+        JsonArrayConst arr = value.as<JsonArrayConst>();
         for (size_t i = 0; i < arr.size(); i++) {
           String station = arr[i].as<String>();
           Serial.println(station);
