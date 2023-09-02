@@ -90,7 +90,7 @@ void setup() {
       Serial.println("Config unchanged");
     }
   });
-  wifiConfig.registerConfigApi(savedJson);
+  wifiConfig.registerConfigApi(savedJson, nullptr, false, 1024);
 
   pinMode(yellow, OUTPUT);
   digitalWrite(yellow, LOW);
@@ -128,10 +128,9 @@ void setup() {
       fan_1.onMqttMessage(topic, data);
     }),
     []() {
-      savedJson.add("stations", "[]", [](const String& value) {
-        deserializeJson(stations, value);
+      savedJson.addJson("stations", "[]", [](const JsonDocument& value) {
         JsonArray arr = stations.as<JsonArray>();
-        for (int i = 0; i < arr.size(); i++) {
+        for (size_t i = 0; i < arr.size(); i++) {
           String station = arr[i].as<String>();
           Serial.println(station);
         }
@@ -139,7 +138,6 @@ void setup() {
     }
   );
   savedJson.begin();
-  deserializeJson(stations, savedJson.getStrVal("stations"));
   sw_1.begin();
   light_1.begin();
   nr_1.begin();

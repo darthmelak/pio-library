@@ -81,7 +81,7 @@ class WifiConfig {
     );
     void loop();
     bool isWifiConnected();
-    void registerConfigApi(Configuration& configuration, post_update_cb cb = NULL, bool isPublic = true);
+    void registerConfigApi(Configuration& configuration, post_update_cb cb = NULL, bool isPublic = true, size_t jsonSize = CONFIG_JSON_SIZE);
     bool subscribe(const String& topic, bool prefix = true);
     void publish(const String& topic, const String& payload, bool retain = false, bool prefix = true);
     String getPrefixedTopic(const String& topic);

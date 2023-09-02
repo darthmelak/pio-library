@@ -37,6 +37,7 @@ class SavedConfiguration: public Configuration {
     int getSize() const;
     SavedConfiguration& add(const String& name, const String& defaultValue, str_update_cb cb = NULL, int length = 64);
     SavedConfiguration& add(const String& name, int defaultValue, int_update_cb cb = NULL);
+    SavedConfiguration& addJson(const String& name, const String& defaultValue, json_update_cb cb = NULL, int length = 256);
     SavedStringConfig *get(const String& name) const;
     SavedIntConfig *getInt(const String& name) const;
     SavedStringConfig *getFirst() const;

@@ -138,6 +138,14 @@ SavedConfiguration& SavedConfiguration::add(const String& name, int defaultValue
   return *this;
 }
 
+SavedConfiguration& SavedConfiguration::addJson(const String& name, const String& defaultValue, json_update_cb cb, int length) {
+  SavedJsonConfig *config = new SavedJsonConfig(name, defaultValue, cb, size, length);
+  size += config->getLength();
+  chain(config);
+
+  return *this;
+}
+
 SavedStringConfig *SavedConfiguration::get(const String& name) const {
   SavedStringConfig *current = first;
   while (current != NULL) {
@@ -171,6 +179,8 @@ void SavedConfiguration::toJson(JsonDocument& json) const {
   while (item != NULL) {
     if (strcmp(item->getType(), CONF_T_INT) == 0) {
       obj[item->getName()] = ((SavedIntConfig *) item)->getIntVal();
+    } else if (strcmp(item->getType(), CONF_T_JSON) == 0) {
+      obj[item->getName()] = ((SavedJsonConfig *) item)->getJsonVal();
     } else {
       obj[item->getName()] = item->getValue();
     }
@@ -187,6 +197,10 @@ bool SavedConfiguration::fromJson(JsonDocument& json) {
     if (obj.containsKey(item->getName())) {
       if (strcmp(item->getType(), CONF_T_INT) == 0) {
         changed = ((SavedIntConfig *) item)->setValue(obj[item->getName()].as<int>()) || changed;
+      } else if (strcmp(item->getType(), CONF_T_JSON) == 0) {
+        DynamicJsonDocument tmp(obj[item->getName()].memoryUsage());
+        tmp.set(obj[item->getName()]);
+        changed = ((SavedJsonConfig *) item)->setValue(tmp) || changed;
       } else {
         changed = item->setValue(obj[item->getName()].as<String>()) || changed;
       }

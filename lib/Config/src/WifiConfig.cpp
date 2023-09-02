@@ -102,27 +102,27 @@ bool WifiConfig::isWifiConnected() {
   return WiFi.status() == WL_CONNECTED;
 }
 
-void WifiConfig::registerConfigApi(Configuration& configuration, post_update_cb cb, bool isPublic) {
+void WifiConfig::registerConfigApi(Configuration& configuration, post_update_cb cb, bool isPublic, size_t jsonSize) {
 
-  server.on(configuration.getPath(), HTTP_GET, [this, isPublic, &configuration]() {
+  server.on(configuration.getPath(), HTTP_GET, [this, isPublic, &configuration, jsonSize]() {
     if (!isPublic) {
-      if (debug) Serial.printf("Auth: %s:%s\n", configuration.getStrVal(C_AUTH_USER).c_str(), configuration.getStrVal(C_AUTH_PASS).c_str());
-      if (!server.authenticate(configuration.getStrVal(C_AUTH_USER).c_str(), configuration.getStrVal(C_AUTH_PASS).c_str())) {
+      if (debug) Serial.printf("Auth: %s:%s\n", config.getStrVal(C_AUTH_USER).c_str(), config.getStrVal(C_AUTH_PASS).c_str());
+      if (!server.authenticate(config.getStrVal(C_AUTH_USER).c_str(), config.getStrVal(C_AUTH_PASS).c_str())) {
         return server.requestAuthentication(BASIC_AUTH);
       }
     }
 
     if (debug) Serial.printf("GET %s\n", configuration.getPath().c_str());
 
-    StaticJsonDocument<CONFIG_JSON_SIZE> json;
+    DynamicJsonDocument json(jsonSize);
     configuration.toJson(json);
     respondJson(json);
   });
 
-  server.on(configuration.getPath(), HTTP_POST, [this, isPublic, &configuration, cb]() {
+  server.on(configuration.getPath(), HTTP_POST, [this, isPublic, &configuration, cb, jsonSize]() {
     if (!isPublic) {
-      if (debug) Serial.printf("Auth: %s:%s\n", configuration.getStrVal(C_AUTH_USER).c_str(), configuration.getStrVal(C_AUTH_PASS).c_str());
-      if (!server.authenticate(configuration.getStrVal(C_AUTH_USER).c_str(), configuration.getStrVal(C_AUTH_PASS).c_str())) {
+      if (debug) Serial.printf("Auth: %s:%s\n", config.getStrVal(C_AUTH_USER).c_str(), config.getStrVal(C_AUTH_PASS).c_str());
+      if (!server.authenticate(config.getStrVal(C_AUTH_USER).c_str(), config.getStrVal(C_AUTH_PASS).c_str())) {
         return server.requestAuthentication(BASIC_AUTH);
       }
     }
@@ -131,7 +131,7 @@ void WifiConfig::registerConfigApi(Configuration& configuration, post_update_cb 
     if (debug) Serial.printf("POST %s\n", configuration.getPath().c_str());
 
     String body = server.arg("plain");
-    StaticJsonDocument<CONFIG_JSON_SIZE> json;
+    DynamicJsonDocument json(jsonSize);
     deserializeJson(json, body);
     bool changed = configuration.fromJson(json);
 

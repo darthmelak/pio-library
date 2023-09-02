@@ -143,7 +143,7 @@ SavedIntConfig::SavedIntConfig(
 ): SavedStringConfig(name, String(defaultValue), NULL, offset, length), value(defaultValue), cb(cb) {}
 
 void SavedIntConfig::setup() {
-  char buffer[64];
+  char buffer[length];
   char charbuff;
 
   for (int i = 0; i < length; i++) {
@@ -177,5 +177,61 @@ const char *SavedIntConfig::getType() const {
 }
 
 void SavedIntConfig::setCb(int_update_cb cb) {
+  this->cb = cb;
+}
+
+SavedJsonConfig::SavedJsonConfig(
+  const String& name,
+  const String& defaultValue,
+  json_update_cb cb,
+  int offset,
+  int length
+): SavedStringConfig(name, defaultValue, NULL, offset, length), value(length + 16), cb(cb) {
+  deserializeJson(value, defaultValue);
+}
+
+void SavedJsonConfig::setup() {
+  char buffer[length];
+  char charbuff;
+
+  for (int i = 0; i < length; i++) {
+    charbuff = char(EEPROM.read(offset + i));
+    buffer[i] = isPrintable(charbuff) ? charbuff : 0;
+  }
+
+  if (strlen(buffer) > 0) {
+    deserializeJson(value, (const char*) buffer, length);
+  }
+}
+
+bool SavedJsonConfig::setValue(const JsonDocument& value) {
+  if (this->value == value) return false;
+
+  String strVal;
+  serializeJson(value, strVal);
+  SavedStringConfig::setValue(strVal);
+  this->value = value;
+
+  if (cb != NULL) cb(value);
+  return true;
+}
+
+String SavedJsonConfig::getValue() const {
+  String strVal;
+  serializeJson(value, strVal);
+  return strVal;
+}
+
+DynamicJsonDocument SavedJsonConfig::getJsonVal() const {
+  DynamicJsonDocument result(value.memoryUsage());
+  result.set(value);
+  return result;
+}
+
+const char *SavedJsonConfig::getType() const {
+  return CONF_T_JSON;
+}
+
+void SavedJsonConfig::setCb(json_update_cb cb) {
   this->cb = cb;
 }

@@ -2,13 +2,16 @@
 #define ConfigTypes_h
 
 #include <Arduino.h>
+#include <ArduinoJson.h>
 #include <EEPROM.h>
 
 #define CONF_T_STR "str"
 #define CONF_T_INT "int"
+#define CONF_T_JSON "json"
 
 typedef std::function<void(const String&)> str_update_cb;
 typedef std::function<void(int)> int_update_cb;
+typedef std::function<void(const JsonDocument&)> json_update_cb;
 
 class StringConfig {
   public:
@@ -63,8 +66,6 @@ class SavedStringConfig {
     int offset;
     int length;
     str_update_cb cb;
-    #ifdef ESP32
-    #endif
 };
 
 class SavedIntConfig: public SavedStringConfig {
@@ -79,6 +80,20 @@ class SavedIntConfig: public SavedStringConfig {
   protected:
     int value;
     int_update_cb cb;
+};
+
+class SavedJsonConfig: public SavedStringConfig {
+  public:
+    SavedJsonConfig(const String& name, const String& defaultValue, json_update_cb cb = NULL, int offset = 0, int length = 64);
+    void setup();
+    bool setValue(const JsonDocument& value);
+    String getValue() const;
+    DynamicJsonDocument getJsonVal() const;
+    const char *getType() const;
+    void setCb(json_update_cb cb);
+  protected:
+    DynamicJsonDocument value;
+    json_update_cb cb;
 };
 
 #endif
