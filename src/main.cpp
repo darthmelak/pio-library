@@ -166,7 +166,7 @@ void serialCb(String buffer) {
   }
   if (buffer == "test") {
     StringConfig *item = config.getFirst();
-    while (item != NULL) {
+    while (item != nullptr) {
       Serial.println(item->getName() + ": " + item->getValue());
       item = item->getNext();
     }

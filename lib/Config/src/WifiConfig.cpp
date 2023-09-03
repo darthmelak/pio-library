@@ -87,7 +87,7 @@ void WifiConfig::beginMQTT(
     .add(C_MQ_PASS, mqtt_password_default)
     .add(C_MQ_PREF, mqtt_prefix_default);
   mqttProps = props;
-  if (cb != NULL) cb();
+  if (cb != nullptr) cb();
   begin();
 }
 
@@ -103,6 +103,7 @@ bool WifiConfig::isWifiConnected() {
 }
 
 void WifiConfig::registerConfigApi(Configuration& configuration, post_update_cb cb, bool isPublic, size_t jsonSize) {
+  if (debug) Serial.printf("ConfigApi registered, path: %s, size: %u\n", configuration.getPath().c_str(), jsonSize);
 
   server.on(configuration.getPath(), HTTP_GET, [this, isPublic, &configuration, jsonSize]() {
     if (!isPublic) {
@@ -138,7 +139,7 @@ void WifiConfig::registerConfigApi(Configuration& configuration, post_update_cb 
     json.clear();
     configuration.toJson(json);
     respondJson(json);
-    if (cb != NULL) cb(changed);
+    if (cb != nullptr) cb(changed);
   });
 }
 
@@ -503,9 +504,6 @@ void WifiConfig::setupSensorId() {
 void WifiConfig::setupWebServer() {
   registerConfigApi(config, [this](bool changed) {
     if (debug) Serial.printf("Wifi-config: %s\n", changed ? "saved" : "not changed");
-    if (changed) {
-      ESP.reset();
-    }
   }, false);
 }
 
@@ -519,7 +517,7 @@ void WifiConfig::setupMosquitto() {
 
     if (debug) Serial.printf("MQTT CB: %s: %s\n", topic, data.c_str());
 
-    if (mqttProps.cb != NULL) mqttProps.cb(topic, data);
+    if (mqttProps.cb != nullptr) mqttProps.cb(topic, data);
   });
 }
 
@@ -538,7 +536,7 @@ void WifiConfig::checkMQTTConnection() {
     else Serial.printf("MQTT connection failed: %d\n", mqtt.state());
   }
   if (!success) mqttFrom = millis();
-  else if (mqttProps.connect_cb != NULL) mqttProps.connect_cb();
+  else if (mqttProps.connect_cb != nullptr) mqttProps.connect_cb();
 }
 
 void WifiConfig::respondJson(const JsonDocument& json, int code) {

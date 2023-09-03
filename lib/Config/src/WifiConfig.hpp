@@ -44,14 +44,14 @@ struct ConnectionStatus {
 
 struct MQTTConnectProps {
   MQTTConnectProps(
-    mqtt_connect_cb connect_cb = NULL,
-    mqtt_cb cb = NULL,
+    mqtt_connect_cb connect_cb = nullptr,
+    mqtt_cb cb = nullptr,
     String willTopic = "",
     String willMessage = ""
   ): connect_cb(connect_cb), cb(cb), willTopic(willTopic), willMessage(willMessage) {}
 
-  mqtt_connect_cb connect_cb = NULL;
-  mqtt_cb cb = NULL;
+  mqtt_connect_cb connect_cb = nullptr;
+  mqtt_cb cb = nullptr;
   String willTopic = "";
   String willMessage = "";
 };
@@ -77,11 +77,11 @@ class WifiConfig {
       const String& mqtt_password_default = "pass",
       const String& mqtt_prefix_default = "homeassistant/",
       MQTTConnectProps props = MQTTConnectProps(),
-      after_add_before_begin_cb cb = NULL
+      after_add_before_begin_cb cb = nullptr
     );
     void loop();
     bool isWifiConnected();
-    void registerConfigApi(Configuration& configuration, post_update_cb cb = NULL, bool isPublic = true, size_t jsonSize = CONFIG_JSON_SIZE);
+    void registerConfigApi(Configuration& configuration, post_update_cb cb = nullptr, bool isPublic = true, size_t jsonSize = CONFIG_JSON_SIZE);
     bool subscribe(const String& topic, bool prefix = true);
     void publish(const String& topic, const String& payload, bool retain = false, bool prefix = true);
     String getPrefixedTopic(const String& topic);

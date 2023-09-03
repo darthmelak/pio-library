@@ -13,8 +13,8 @@ class Configuration {
     virtual ~Configuration() {};
     void setPath(const char* path);
     String getPath() const;
-    Configuration& add(const String& name, const String& defaultValue, str_update_cb cb = NULL);
-    Configuration& add(const String& name, int defaultValue, int_update_cb cb = NULL);
+    Configuration& add(const String& name, const String& defaultValue, str_update_cb cb = nullptr);
+    Configuration& add(const String& name, int defaultValue, int_update_cb cb = nullptr);
     StringConfig *get(const String& name) const;
     IntConfig *getInt(const String& name) const;
     StringConfig *getFirst() const;
@@ -35,11 +35,12 @@ class SavedConfiguration: public Configuration {
     SavedConfiguration(const char* path, bool debug = false);
     void begin();
     int getSize() const;
-    SavedConfiguration& add(const String& name, const String& defaultValue, str_update_cb cb = NULL, int length = 64);
-    SavedConfiguration& add(const String& name, int defaultValue, int_update_cb cb = NULL);
-    SavedConfiguration& addJson(const String& name, const String& defaultValue, json_update_cb cb = NULL, int length = 256);
+    SavedConfiguration& add(const String& name, const String& defaultValue, str_update_cb cb = nullptr, int length = 64);
+    SavedConfiguration& add(const String& name, int defaultValue, int_update_cb cb = nullptr);
+    SavedConfiguration& addJson(const String& name, const String& defaultValue, json_update_cb cb = nullptr, int length = 256);
     SavedStringConfig *get(const String& name) const;
     SavedIntConfig *getInt(const String& name) const;
+    SavedJsonConfig *getJson(const String& name) const;
     SavedStringConfig *getFirst() const;
     void toJson(JsonDocument& json) const;
     bool fromJson(JsonDocument& json);

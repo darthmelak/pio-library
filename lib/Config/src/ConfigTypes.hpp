@@ -15,7 +15,7 @@ typedef std::function<void(const JsonDocument&)> json_update_cb;
 
 class StringConfig {
   public:
-    StringConfig(const String& name, const String& defaultValue, str_update_cb cb = NULL);
+    StringConfig(const String& name, const String& defaultValue, str_update_cb cb = nullptr);
     virtual ~StringConfig() {};
     String getName() const;
     void setNext(StringConfig *next);
@@ -34,7 +34,7 @@ class StringConfig {
 
 class IntConfig: public StringConfig {
   public:
-    IntConfig(const String& name, int defaultValue, int_update_cb cb = NULL);
+    IntConfig(const String& name, int defaultValue, int_update_cb cb = nullptr);
     bool setValue(int value);
     String getValue() const;
     int getIntVal() const;
@@ -47,7 +47,7 @@ class IntConfig: public StringConfig {
 
 class SavedStringConfig {
   public:
-    SavedStringConfig(const String& name, const String& defaultValue, str_update_cb cb = NULL, int offset = 0, int length = 64);
+    SavedStringConfig(const String& name, const String& defaultValue, str_update_cb cb = nullptr, int offset = 0, int length = 64);
     virtual ~SavedStringConfig() {};
     virtual void setup();
     String getName() const;
@@ -62,6 +62,7 @@ class SavedStringConfig {
     String name;
     SavedStringConfig *next;
   protected:
+    void save(const String& value);
     String value;
     int offset;
     int length;
@@ -70,7 +71,7 @@ class SavedStringConfig {
 
 class SavedIntConfig: public SavedStringConfig {
   public:
-    SavedIntConfig(const String& name, int defaultValue, int_update_cb cb = NULL, int offset = 0, int length = 6);
+    SavedIntConfig(const String& name, int defaultValue, int_update_cb cb = nullptr, int offset = 0, int length = 6);
     void setup();
     bool setValue(int value);
     String getValue() const;
@@ -84,11 +85,11 @@ class SavedIntConfig: public SavedStringConfig {
 
 class SavedJsonConfig: public SavedStringConfig {
   public:
-    SavedJsonConfig(const String& name, const String& defaultValue, json_update_cb cb = NULL, int offset = 0, int length = 64);
+    SavedJsonConfig(const String& name, const String& defaultValue, json_update_cb cb = nullptr, int offset = 0, int length = 64);
     void setup();
     bool setValue(const JsonDocument& value);
     String getValue() const;
-    DynamicJsonDocument getJsonVal() const;
+    JsonVariantConst getJsonVal() const;
     const char *getType() const;
     void setCb(json_update_cb cb);
   protected:

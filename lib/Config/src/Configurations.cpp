@@ -1,8 +1,8 @@
 #include "Configurations.hpp"
 
-Configuration::Configuration(bool debug): debug(debug), first(NULL), last(NULL) {}
+Configuration::Configuration(bool debug): debug(debug), first(nullptr), last(nullptr) {}
 
-Configuration::Configuration(const char* path, bool debug): path(path), debug(debug), first(NULL), last(NULL) {}
+Configuration::Configuration(const char* path, bool debug): path(path), debug(debug), first(nullptr), last(nullptr) {}
 
 void Configuration::setPath(const char* path) {
   this->path = path;
@@ -28,28 +28,28 @@ Configuration& Configuration::add(const String& name, int defaultValue, int_upda
 
 StringConfig *Configuration::get(const String& name) const {
   StringConfig *current = first;
-  while (current != NULL) {
+  while (current != nullptr) {
     if (current->getName() == name) {
       return current;
     }
     current = current->getNext();
   }
-  return NULL;
+  return nullptr;
 }
 
 IntConfig *Configuration::getInt(const String& name) const {
   StringConfig *current = first;
-  while (current != NULL) {
+  while (current != nullptr) {
     if (current->getName() == name) {
       return (IntConfig *) current;
     }
     current = current->getNext();
   }
-  return NULL;
+  return nullptr;
 }
 
 void Configuration::chain(StringConfig *config) {
-  if (first == NULL) {
+  if (first == nullptr) {
     first = config;
     last = config;
   } else {
@@ -66,7 +66,7 @@ void Configuration::toJson(JsonDocument& json) const {
   JsonObject obj = json.to<JsonObject>();
   StringConfig *item = first;
 
-  while (item != NULL) {
+  while (item != nullptr) {
     if (strcmp(item->getType(), CONF_T_INT) == 0) {
       obj[item->getName()] = ((IntConfig *) item)->getIntVal();
     } else {
@@ -81,7 +81,7 @@ bool Configuration::fromJson(JsonDocument& json) {
   bool changed = false;
   StringConfig *item = first;
 
-  while (item != NULL) {
+  while (item != nullptr) {
     if (obj.containsKey(item->getName())) {
       if (strcmp(item->getType(), CONF_T_INT) == 0) {
         changed = ((IntConfig *) item)->setValue(obj[item->getName()].as<int>()) || changed;
@@ -96,13 +96,13 @@ bool Configuration::fromJson(JsonDocument& json) {
 
 String Configuration::getStrVal(const String& name) const {
   StringConfig *item = get(name);
-  if (item != NULL) {
+  if (item != nullptr) {
     return item->getValue();
   }
   return "";
 }
 
-SavedConfiguration::SavedConfiguration(const char* path, bool debug): Configuration(path, debug), first(NULL), last(NULL) {}
+SavedConfiguration::SavedConfiguration(const char* path, bool debug): Configuration(path, debug), first(nullptr), last(nullptr) {}
 
 void SavedConfiguration::begin() {
   // only begin EEPROM once
@@ -111,7 +111,7 @@ void SavedConfiguration::begin() {
     initialized = true;
   }
   SavedStringConfig *current = first;
-  while (current != NULL) {
+  while (current != nullptr) {
     current->setup();
     if (debug) Serial.printf("%s: %s\n", current->getName().c_str(), current->getValue().c_str());
     current = current->getNext();
@@ -148,24 +148,35 @@ SavedConfiguration& SavedConfiguration::addJson(const String& name, const String
 
 SavedStringConfig *SavedConfiguration::get(const String& name) const {
   SavedStringConfig *current = first;
-  while (current != NULL) {
+  while (current != nullptr) {
     if (current->getName() == name) {
       return current;
     }
     current = current->getNext();
   }
-  return NULL;
+  return nullptr;
 }
 
 SavedIntConfig *SavedConfiguration::getInt(const String& name) const {
   SavedStringConfig *current = first;
-  while (current != NULL) {
-    if (current->getName() == name) {
+  while (current != nullptr) {
+    if (current->getName() == name && strcmp(current->getType(), CONF_T_INT) == 0) {
       return (SavedIntConfig *) current;
     }
     current = current->getNext();
   }
-  return NULL;
+  return nullptr;
+}
+
+SavedJsonConfig *SavedConfiguration::getJson(const String& name) const {
+  SavedStringConfig *current = first;
+  while (current != nullptr) {
+    if (current->getName() == name && strcmp(current->getType(), CONF_T_JSON) == 0) {
+      return (SavedJsonConfig *) current;
+    }
+    current = current->getNext();
+  }
+  return nullptr;
 }
 
 SavedStringConfig *SavedConfiguration::getFirst() const {
@@ -176,7 +187,7 @@ void SavedConfiguration::toJson(JsonDocument& json) const {
   JsonObject obj = json.to<JsonObject>();
   SavedStringConfig *item = first;
 
-  while (item != NULL) {
+  while (item != nullptr) {
     if (strcmp(item->getType(), CONF_T_INT) == 0) {
       obj[item->getName()] = ((SavedIntConfig *) item)->getIntVal();
     } else if (strcmp(item->getType(), CONF_T_JSON) == 0) {
@@ -193,7 +204,7 @@ bool SavedConfiguration::fromJson(JsonDocument& json) {
   bool changed = false;
   SavedStringConfig *item = first;
 
-  while (item != NULL) {
+  while (item != nullptr) {
     if (obj.containsKey(item->getName())) {
       if (strcmp(item->getType(), CONF_T_INT) == 0) {
         changed = ((SavedIntConfig *) item)->setValue(obj[item->getName()].as<int>()) || changed;
@@ -212,14 +223,14 @@ bool SavedConfiguration::fromJson(JsonDocument& json) {
 
 String SavedConfiguration::getStrVal(const String& name) const {
   SavedStringConfig *item = get(name);
-  if (item != NULL) {
+  if (item != nullptr) {
     return item->getValue();
   }
   return "";
 }
 
 void SavedConfiguration::chain(SavedStringConfig *config) {
-  if (first == NULL) {
+  if (first == nullptr) {
     first = config;
     last = config;
   } else {

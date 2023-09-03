@@ -1,7 +1,7 @@
 #include "ConfigTypes.hpp"
 
 /* --== StringConfig ==-- */
-StringConfig::StringConfig(const String& name, const String& defaultValue, str_update_cb cb): name(name), next(NULL), value(defaultValue), cb(cb) {}
+StringConfig::StringConfig(const String& name, const String& defaultValue, str_update_cb cb): name(name), next(nullptr), value(defaultValue), cb(cb) {}
 
 String StringConfig::getName() const {
   return name;
@@ -70,7 +70,7 @@ SavedStringConfig::SavedStringConfig(
   int offset,
   int length
 ): name(name),
-  next(NULL),
+  next(nullptr),
   value(defaultValue),
   offset(offset),
   length(length),
@@ -104,14 +104,7 @@ bool SavedStringConfig::setValue(const String& value) {
   if (this->value == value) return false;
 
   this->value = value;
-  for (int i = 0; i < length; i++) {
-    if ((unsigned)i < value.length()) {
-      EEPROM.write(offset + i, value[i]);
-    } else {
-      EEPROM.write(offset + i, 0);
-    }
-  }
-  EEPROM.commit();
+  save(value);
 
   if (cb != nullptr) cb(value);
   return true;
@@ -133,6 +126,17 @@ void SavedStringConfig::setCb(str_update_cb cb) {
   this->cb = cb;
 }
 
+void SavedStringConfig::save(const String& value) {
+  for (int i = 0; i < length; i++) {
+    if ((unsigned)i < value.length()) {
+      EEPROM.write(offset + i, value[i]);
+    } else {
+      EEPROM.write(offset + i, 0);
+    }
+  }
+  EEPROM.commit();
+}
+
 /* --== SavedIntConfig ==-- */
 SavedIntConfig::SavedIntConfig(
   const String& name,
@@ -140,7 +144,7 @@ SavedIntConfig::SavedIntConfig(
   int_update_cb cb,
   int offset,
   int length
-): SavedStringConfig(name, String(defaultValue), NULL, offset, length), value(defaultValue), cb(cb) {}
+): SavedStringConfig(name, String(defaultValue), nullptr, offset, length), value(defaultValue), cb(cb) {}
 
 void SavedIntConfig::setup() {
   char buffer[length];
@@ -157,8 +161,8 @@ void SavedIntConfig::setup() {
 bool SavedIntConfig::setValue(int value) {
   if (this->value == value) return false;
 
-  SavedStringConfig::setValue(String(value));
   this->value = value;
+  save(String(value));
 
   if (cb != nullptr) cb(value);
   return true;
@@ -186,7 +190,7 @@ SavedJsonConfig::SavedJsonConfig(
   json_update_cb cb,
   int offset,
   int length
-): SavedStringConfig(name, defaultValue, NULL, offset, length), value(length + 16), cb(cb) {
+): SavedStringConfig(name, defaultValue, nullptr, offset, length), value(length + 16), cb(cb) {
   deserializeJson(value, defaultValue);
 }
 
@@ -211,8 +215,8 @@ bool SavedJsonConfig::setValue(const JsonDocument& value) {
   serializeJson(this->value, innerVal);
   if (innerVal == strVal) return false;
 
-  SavedStringConfig::setValue(strVal);
   this->value = value;
+  save(strVal);
 
   if (cb != nullptr) cb(value);
   return true;
@@ -224,10 +228,8 @@ String SavedJsonConfig::getValue() const {
   return strVal;
 }
 
-DynamicJsonDocument SavedJsonConfig::getJsonVal() const {
-  DynamicJsonDocument result(value.memoryUsage());
-  result.set(value);
-  return result;
+JsonVariantConst SavedJsonConfig::getJsonVal() const {
+  return value.as<JsonVariantConst>();
 }
 
 const char *SavedJsonConfig::getType() const {
