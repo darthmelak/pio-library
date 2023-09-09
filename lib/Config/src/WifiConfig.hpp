@@ -34,7 +34,7 @@
 
 typedef std::function<void(bool)> post_update_cb;
 typedef std::function<void()> mqtt_connect_cb;
-typedef std::function<void(String, String)> mqtt_cb;
+typedef std::function<void(const String&, const String&)> mqtt_cb;
 typedef std::function<void()> after_add_before_begin_cb;
 
 struct ConnectionStatus {

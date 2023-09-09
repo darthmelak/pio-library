@@ -122,7 +122,7 @@ void setup() {
       light_1.onMqttConnect();
       nr_1.onMqttConnect();
       fan_1.onMqttConnect();
-    }, [](String topic, String data) {
+    }, [](const String& topic, const String& data) {
       // if (topic == wifiConfig.getPrefixedTopic("/cmd/led")) {
       //   int state = data.toInt();
       //   config.getInt("light")->setValue(state);
