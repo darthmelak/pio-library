@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-typedef std::function<void(String)> serial_cmd_cb;
+typedef std::function<void(const String&)> serial_cmd_cb;
 
 void handleSerial(bool debug = true, serial_cmd_cb cb = NULL) {
   static String buffer = "";

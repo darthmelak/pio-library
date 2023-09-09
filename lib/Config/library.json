@@ -14,6 +14,7 @@
     "HAswitchHelper.hpp",
     "HAlightHelper.hpp",
     "HAnumberHelper.hpp",
+    "HAfanHelper.hpp",
     "SerialHandler.hpp",
     "ArduinoMap.hpp"
   ],
