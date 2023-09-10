@@ -11,6 +11,7 @@ class HAfanHelper : public HAlightHelper {
     virtual void onMqttConnect();
     virtual void onMqttMessage(const String& topic, const String& payload);
     virtual void tick();
+    void setCb(int_update_cb cb);
   protected:
     int delta;
     unsigned int nextDelay;
@@ -18,6 +19,7 @@ class HAfanHelper : public HAlightHelper {
     String oscillateStateTopic;
     String oscillateCmdTopic;
     virtual void oscillateStep();
+    int_update_cb rawCb;
 };
 
 #endif

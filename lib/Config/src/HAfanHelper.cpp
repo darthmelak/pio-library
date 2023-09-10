@@ -4,16 +4,16 @@
 #define RANDOM_UPDATE_INTERVAL 15
 #define RANDOM_UPDATE_JITTER 5
 
-HAfanHelper::HAfanHelper(WifiConfig& wifiConfig, const char* suffix, int pin, int maxLevel, int minOffset, int maxOffset, bool invertState, bool debug): HAlightHelper(wifiConfig, suffix, pin, maxLevel, minOffset, maxOffset, invertState, debug), nextDelay(0), lastOscillate(0) {
+HAfanHelper::HAfanHelper(WifiConfig& wifiConfig, const char* suffix, int pin, int maxLevel, int minOffset, int maxOffset, bool invertState, bool debug): HAlightHelper(wifiConfig, suffix, pin, maxLevel, minOffset, maxOffset, invertState, debug), nextDelay(0), lastOscillate(0), rawCb(nullptr) {
   delta = maxLevel / 2;
 }
 
 void HAfanHelper::begin() {
   pinMode(pin, OUTPUT);
   #ifdef ESP32
-  ledcAttachPin(pin, pwmChannel);
   int ledStatus = ledcSetup(pwmChannel, 25000, 8);
   if (debug) Serial.printf("ledcSetup channel: %d, status: %d\n", pwmChannel, ledStatus);
+  ledcAttachPin(pin, pwmChannel);
   pwmChannel++;
   #endif
   digitalWrite(pin, invertState ? HIGH : LOW);
@@ -77,6 +77,7 @@ void HAfanHelper::begin() {
       }
       if (debug) Serial.printf("Level: %d, PWMlevel: %d\n", value, level);
       analogWrite(pin, level);
+      if (rawCb) rawCb(value);
     })
   ;
 }
@@ -111,6 +112,10 @@ void HAfanHelper::tick() {
       oscillateStep();
     }
   }
+}
+
+void HAfanHelper::setCb(int_update_cb cb) {
+  rawCb = cb;
 }
 
 void HAfanHelper::oscillateStep() {

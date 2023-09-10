@@ -6,9 +6,9 @@ HAlightHelper::HAlightHelper(WifiConfig& wifiConfig, const char* suffix, int pin
 void HAlightHelper::begin() {
   pinMode(pin, OUTPUT);
   #ifdef ESP32
-  ledcAttachPin(pin, pwmChannel);
   int ledStatus = ledcSetup(pwmChannel, 25000, 8);
   if (debug) Serial.printf("ledcSetup channel: %d, status: %d\n", pwmChannel, ledStatus);
+  ledcAttachPin(pin, pwmChannel);
   pwmChannel++;
   #endif
   digitalWrite(pin, invertState ? HIGH : LOW);
