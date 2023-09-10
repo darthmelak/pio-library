@@ -4,7 +4,7 @@
 #define RANDOM_UPDATE_INTERVAL 15
 #define RANDOM_UPDATE_JITTER 5
 
-HAfanHelper::HAfanHelper(WifiConfig& wifiConfig, const char* suffix, int pin, int maxLevel, int minOffset, int maxOffset, bool invertState, bool debug): HAlightHelper(wifiConfig, suffix, pin, maxLevel, minOffset, maxOffset, invertState, debug), nextDelay(0), lastOscillate(0), rawCb(nullptr) {
+HAfanHelper::HAfanHelper(WifiConfig& wifiConfig, const char* suffix, int pin, int maxLevel, int minOffset, int maxOffset, bool invertState, bool debug, int pwrpin, bool pwrinvert): HAlightHelper(wifiConfig, suffix, pin, maxLevel, minOffset, maxOffset, invertState, debug), pwrpin(pwrpin), pwrinvert(pwrinvert), nextDelay(0), lastOscillate(0), rawCb(nullptr) {
   delta = maxLevel / 2;
 }
 
@@ -17,6 +17,10 @@ void HAfanHelper::begin() {
   pwmChannel++;
   #endif
   digitalWrite(pin, invertState ? HIGH : LOW);
+  if (pwrpin != -1) {
+    pinMode(pwrpin, OUTPUT);
+    digitalWrite(pwrpin, pwrinvert ? HIGH : LOW);
+  }
 
   wifiConfig.getPrefixedTopic(cmdTopic, "fan/{sensorId}_{suffix}/cmd/state");
   cmdTopic.replace("{suffix}", suffix);
@@ -77,6 +81,11 @@ void HAfanHelper::begin() {
       }
       if (debug) Serial.printf("Level: %d, PWMlevel: %d\n", value, level);
       analogWrite(pin, level);
+      if (pwrpin != -1) digitalWrite(
+        pwrpin, value > 0 ?
+        (pwrinvert ? LOW : HIGH) :
+        (pwrinvert ? HIGH : LOW)
+      );
       if (rawCb) rawCb(value);
     })
   ;
