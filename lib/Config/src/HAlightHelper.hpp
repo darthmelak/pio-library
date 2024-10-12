@@ -14,6 +14,7 @@ class HAlightHelper : public HAswitchHelper {
     virtual void begin();
     virtual void onMqttConnect();
     virtual void onMqttMessage(const String& topic, const String& payload);
+    static void setPwmChannel(int channel);
   protected:
     int level;
     int maxLevel;

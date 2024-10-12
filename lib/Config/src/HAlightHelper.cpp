@@ -72,4 +72,8 @@ void HAlightHelper::onMqttMessage(const String& topic, const String& payload) {
   }
 }
 
+void HAlightHelper::setPwmChannel(int channel) {
+  pwmChannel = channel;
+}
+
 int HAlightHelper::pwmChannel = 0;
