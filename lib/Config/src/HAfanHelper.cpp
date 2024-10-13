@@ -11,7 +11,7 @@ HAfanHelper::HAfanHelper(WifiConfig& wifiConfig, const char* suffix, int pin, in
 void HAfanHelper::begin() {
   pinMode(pin, OUTPUT);
   #ifdef ESP32
-  int ledStatus = ledcSetup(pwmChannel, 25000, 8);
+  int ledStatus = ledcSetup(pwmChannel, pwmFreq, 8);
   if (debug) Serial.printf("ledcSetup channel: %d, status: %d\n", pwmChannel, ledStatus);
   ledcAttachPin(pin, pwmChannel);
   pwmChannel++;
@@ -89,6 +89,11 @@ void HAfanHelper::begin() {
       if (rawCb) rawCb(value);
     })
   ;
+}
+
+void HAfanHelper::begin(int freq) {
+  pwmFreq = freq;
+  begin();
 }
 
 void HAfanHelper::onMqttConnect() {

@@ -12,6 +12,7 @@ class HAlightHelper : public HAswitchHelper {
      * potentionally call randomSeed(analogRead({floating_pin}));
      */
     virtual void begin();
+    virtual void begin(int freq);
     virtual void onMqttConnect();
     virtual void onMqttMessage(const String& topic, const String& payload);
     static void setPwmChannel(int channel);
@@ -20,6 +21,7 @@ class HAlightHelper : public HAswitchHelper {
     int maxLevel;
     int minOffset;
     int maxOffset;
+    int pwmFreq;
     String levelStateTopic;
     String levelCmdTopic;
     static int pwmChannel;

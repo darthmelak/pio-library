@@ -8,6 +8,7 @@ class HAfanHelper : public HAlightHelper {
     HAfanHelper(WifiConfig& wifiConfig, const char* suffix, int pin, int maxLevel = 8, int minOffset = 0, int maxOffset = 0, bool invertState = false, bool debug = false, int pwrpin = -1, bool pwrinvert = false);
     virtual ~HAfanHelper() {};
     virtual void begin();
+    virtual void begin(int freq);
     virtual void onMqttConnect();
     virtual void onMqttMessage(const String& topic, const String& payload);
     virtual void tick();

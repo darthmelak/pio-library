@@ -1,12 +1,12 @@
 #include <Arduino.h>
 #include "HAlightHelper.hpp"
 
-HAlightHelper::HAlightHelper(WifiConfig& wifiConfig, const char* suffix, int pin, int maxLevel, int minOffset, int maxOffset, bool invertState, bool debug): HAswitchHelper(wifiConfig, suffix, pin, invertState, debug), maxLevel(maxLevel), minOffset(minOffset), maxOffset(maxOffset) {}
+HAlightHelper::HAlightHelper(WifiConfig& wifiConfig, const char* suffix, int pin, int maxLevel, int minOffset, int maxOffset, bool invertState, bool debug): HAswitchHelper(wifiConfig, suffix, pin, invertState, debug), maxLevel(maxLevel), minOffset(minOffset), maxOffset(maxOffset), pwmFreq(250000) {}
 
 void HAlightHelper::begin() {
   pinMode(pin, OUTPUT);
   #ifdef ESP32
-  int ledStatus = ledcSetup(pwmChannel, 25000, 8);
+  int ledStatus = ledcSetup(pwmChannel, pwmFreq, 8);
   if (debug) Serial.printf("ledcSetup channel: %d, status: %d\n", pwmChannel, ledStatus);
   ledcAttachPin(pin, pwmChannel);
   pwmChannel++;
@@ -50,6 +50,11 @@ void HAlightHelper::begin() {
       wifiConfig.publish(levelStateTopic, String(value), true, false);
     })
   ;
+}
+
+void HAlightHelper::begin(int freq) {
+  pwmFreq = freq;
+  begin();
 }
 
 void HAlightHelper::onMqttConnect() {
