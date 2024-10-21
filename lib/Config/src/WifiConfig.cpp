@@ -456,7 +456,7 @@ void WifiConfig::checkWifiConnection() {
 
     wifiStatus.from = millis();
     wifiStatus.connecting = true;
-    WiFi.begin(ssid, password);
+    WiFi.begin(ssid.c_str(), password.c_str());
   } else {
     unsigned long elapsed = millis() - wifiStatus.from;
     if (WiFi.status() != WL_CONNECTED && elapsed < WIFI_TIMEOUT) {

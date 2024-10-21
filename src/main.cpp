@@ -2,7 +2,11 @@
 #include <Arduino.h>
 #include <arduino-timer.h>
 #include <OneButton.h>
+#ifdef ESP8266
 #include <Servo.h>
+#else
+#include <ESP32Servo.h>
+#endif
 #include <ArduinoJson.h>
 #include "Configurations.hpp"
 #include "WifiConfig.hpp"
@@ -54,7 +58,9 @@ void setup() {
     delay(10);
   }
 
+  #ifdef ESP8266
   analogWriteFreq(4000);
+  #endif
   randomSeed(analogRead(analog));
 
   config

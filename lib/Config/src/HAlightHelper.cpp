@@ -10,8 +10,10 @@ void HAlightHelper::begin() {
   if (debug) Serial.printf("ledcSetup channel: %d, status: %d\n", pwmChannel, ledStatus);
   ledcAttachPin(pin, pwmChannel);
   pwmChannel++;
-  #endif
+  analogWrite(pin, invertState ? 255 : 0);
+  #else
   digitalWrite(pin, invertState ? HIGH : LOW);
+  #endif
 
   wifiConfig.getPrefixedTopic(cmdTopic, "light/{sensorId}_{suffix}/cmd/state");
   cmdTopic.replace("{suffix}", suffix);
