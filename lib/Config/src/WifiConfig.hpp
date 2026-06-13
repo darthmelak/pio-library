@@ -97,9 +97,18 @@ class WifiConfig {
     /**
      * generates sensor config payload
      * state topic: `sensor/{sensorId}_{suffix}/state`
+     * deviceClass: https://www.home-assistant.io/integrations/sensor/#device-class
      */
     String sensorConfigPayload(const String& suffix, const String& deviceClass, const String& unit);
     String sensorConfigPayload(const String& suffix, String& statTopic, const String& deviceClass, const String& unit);
+    /**
+     * generates event config payload
+     * state topic: `event/{sensorId}_{suffix}/state`
+     * eventTypes: list of event types separated by comma, e.g. "press,longpress"
+     * deviceClass: https://www.home-assistant.io/integrations/event/#device-class
+     */
+    String eventConfigPayload(const String& suffix, const String& deviceClass, const String& eventTypes);
+    String eventConfigPayload(const String& suffix, String& statTopic, const String& deviceClass, const String& eventTypes);
     /**
      * generates switch config payload
      * cmd topic: `switch/{sensorId}_{suffix}/cmd`

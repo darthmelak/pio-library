@@ -244,6 +244,52 @@ String WifiConfig::sensorConfigPayload(const String& suffix, String& statTopic, 
   return jsonStr;
 }
 
+String WifiConfig::eventConfigPayload(const String& suffix, const String& deviceClass, const String& eventTypes) {
+  String statTopic;
+  return eventConfigPayload(suffix, statTopic, deviceClass, eventTypes);
+}
+
+String WifiConfig::eventConfigPayload(const String& suffix, String& statTopic, const String& deviceClass, const String& eventTypes) {
+  const String& name = config.get(C_NAME)->getValue();
+  char suffixName[64];
+  snprintf(suffixName, 64, "%s %s", name.c_str(), suffix.c_str());
+  char uniqId[64];
+  snprintf(uniqId, 64, "%s_%s", sensorId.c_str(), suffix.c_str());
+
+  if (statTopic.length() == 0) {
+    getPrefixedTopic(statTopic, "event/{sensorId}_{suffix}/state");
+    statTopic.replace("{suffix}", suffix);
+  }
+
+  StaticJsonDocument<512> json;
+  json["dev"]["identifiers"] = sensorId;
+  json["dev"]["model"] = config.get(C_MODL)->getValue();
+  json["dev"]["name"] = name;
+  json["name"] = suffixName;
+  json["uniq_id"] = uniqId;
+  json["dev_cla"] = deviceClass;
+  json["stat_t"] = statTopic;
+  JsonArray typesJson = json.createNestedArray("evt_typ");
+
+  // split eventTypes by ',' and add them to typesJson
+  unsigned int start = 0;
+  for (unsigned int end = 0; end < eventTypes.length();) {
+    end = eventTypes.indexOf(',', start);
+    if (end) {
+      typesJson.add(eventTypes.substring(start, end));
+      start = end + 1;
+    } else {
+      typesJson.add(eventTypes.substring(start));
+      end = eventTypes.length();
+    }
+  }
+
+
+  String jsonStr;
+  serializeJson(json, jsonStr);
+  return jsonStr;
+}
+
 String WifiConfig::switchConfigPayload(const String& suffix) {
   String cmdTopic;
   String stateTopic;

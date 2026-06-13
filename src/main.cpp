@@ -86,6 +86,11 @@ void setup() {
       level->setValue(255);
       state->setValue(1);
     }
+    wifiConfig.publish("event/{sensorId}_btn/state", "{\"event_type\":\"press\"}");
+  });
+
+  btn.attachDoubleClick([]() {
+    wifiConfig.publish("event/{sensorId}_btn/state", "{\"event_type\":\"doublePress\"}");
   });
 
   wifiConfig.registerConfigApi(config, [](bool changed) {
@@ -124,6 +129,7 @@ void setup() {
     "homeassistant/",
     MQTTConnectProps([]() {
       // wifiConfig.subscribe("/cmd/led");
+      wifiConfig.publish("event/{sensorId}_btn/config", wifiConfig.eventConfigPayload("btn", "button", "press,doublePress"), true);
       sw_1.onMqttConnect();
       light_1.onMqttConnect();
       nr_1.onMqttConnect();
