@@ -524,6 +524,7 @@ void WifiConfig::checkWifiConnection() {
           if (debug) Serial.println("WebServer started");
         }
       } else {
+        WiFi.disconnect();
         if (debug) Serial.println("\nConnection failed.");
       }
     }

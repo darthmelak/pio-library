@@ -11,10 +11,10 @@
 #include "Configurations.hpp"
 
 #ifndef WIFI_TIMEOUT
-#define WIFI_TIMEOUT 5000
+#define WIFI_TIMEOUT 10000
 #endif
 #ifndef WIFI_RECONNECT_INTERVAL
-#define WIFI_RECONNECT_INTERVAL 10000
+#define WIFI_RECONNECT_INTERVAL 15000
 #endif
 #ifndef CONFIG_JSON_SIZE
 #define CONFIG_JSON_SIZE 512
